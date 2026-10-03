@@ -1,0 +1,97 @@
+/**
+ * IYC 2026 — Global Styles & Design Tokens
+ *
+ * Color usage guide (60-20-10-10 rule):
+ *   60% — primary (#1c6e86)          : backgrounds, nav, large fills
+ *   20% — white (#ffffff)             : typography, logos, primary text
+ *   10% — ice (#D8F5F9)               : large headings, glows, accents
+ *    5% — cream (#E4D7C4)             : warm glow behind images/objects
+ *    5% — highlight/muted/mid         : decorative, borders, secondary UI
+ */
+
+@import "tailwindcss";
+
+@theme {
+  /* ── Brand palette ─────────────────────────────────────── */
+  --color-primary:      #1c6e86;   /* Main background (dominant) */
+  --color-primary-mid:  #478ca1;   /* Gradient partner           */
+  --color-highlight:    #67a3b1;   /* Accents & borders          */
+  --color-muted:        #8ab4b9;   /* Decorative elements        */
+  --color-ice:          #d8f5f9;   /* Large text & glow effects  */
+  --color-cream:        #e4d7c4;   /* Warm glow behind images    */
+
+  /* ── Typography ─────────────────────────────────────────── */
+  --font-serif:   "Cormorant Garamond", Georgia, serif;
+  --font-sans:    "Inter", system-ui, sans-serif;
+
+  /* ── Spacing / radius extras ────────────────────────────── */
+  --radius-xl:    1.25rem;
+  --radius-2xl:   1.75rem;
+}
+
+/* ── Base resets ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-primary);
+  color: #ffffff;
+  line-height: 1.6;
+  min-height: 100dvh;
+  /* Subtle deep-teal gradient from primary to primary-mid */
+  background-image: linear-gradient(
+    160deg,
+    var(--color-primary) 0%,
+    var(--color-primary-mid) 100%
+  );
+  background-attachment: fixed;
+}
+
+/* ── Heading defaults ────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  color: var(--color-ice);
+  line-height: 1.2;
+  margin: 0;
+}
+
+p, li {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, svg, video {
+  display: block;
+  max-width: 100%;
+}
+
+/* ── Focus ring (accessibility) ──────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-ice);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── Scrollbar (subtle, on-brand) ───────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-highlight);
+  border-radius: 999px;
+}
