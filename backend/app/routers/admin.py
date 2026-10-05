@@ -73,7 +73,8 @@ def get_registrations(
         search_pattern = f"%{search}%"
         query = query.filter(
             or_(
-                Registration.full_name.ilike(search_pattern),
+                Registration.first_name.ilike(search_pattern),
+                Registration.last_name.ilike(search_pattern),
                 Registration.phone_e164.ilike(search_pattern),
                 Registration.ticket_code.ilike(search_pattern)
             )
@@ -110,7 +111,15 @@ def export_registrations_csv(db: Session = Depends(get_db)) -> StreamingResponse
     for reg in registrations:
         writer.writerow([
             reg.id,
-            reg.full_name,
+            reg.first_name,
+            reg.last_name,
+            reg.other_names or "",
+            reg.date_of_birth,
+            reg.profession,
+            "Yes" if reg.student_status else "No",
+            reg.school_name or "",
+            "Yes" if reg.invitation_by_someone else "No",
+            reg.invitation_by_who or "",
             reg.phone_e164,
             reg.church,
             "Yes" if reg.attended_before else "No",
@@ -160,7 +169,7 @@ def anonymize_registration(
         raise AppError("Registration not found", code="not_found", status_code=404)
 
     # Overwrite PII, keeping structural integrity
-    reg.full_name = "Anonymized User"
+    reg.first_name = "Anonymized User"
     reg.phone_e164 = f"anon-{reg.ticket_code}"
     reg.church = "Anonymized"
 

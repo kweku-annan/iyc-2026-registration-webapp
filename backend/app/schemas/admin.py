@@ -27,7 +27,15 @@ class AdminRegistrationResponse(BaseModel):
     """Registration object for the admin table."""
     model_config = {"from_attributes": True}
     id: int
-    full_name: str
+    first_name: str
+    last_name: str
+    other_names: str | None
+    date_of_birth: str
+    profession: str
+    student_status: bool
+    school_name: str | None
+    invitation_by_someone: bool
+    invitation_by_who: str | None
     phone_e164: str
     church: str
     attended_before: bool

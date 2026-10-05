@@ -43,12 +43,14 @@ def search_registrations(q: str, db: Session = Depends(get_db)):
         select(Registration)
         .where(
             or_(
-                Registration.full_name.ilike(search_term),
+                Registration.first_name.ilike(search_term),
+                Registration.last_name.ilike(search_term),
+                Registration.other_names.ilike(search_term),
                 Registration.phone_e164.ilike(f"%{phone_search}%"),
                 Registration.ticket_code.ilike(search_term)
             )
         )
-        .order_by(Registration.full_name)
+        .order_by(Registration.first_name.asc(), Registration.last_name.asc())
         .limit(20)
     ).scalars().all()
     return regs
@@ -109,7 +111,15 @@ def walk_in_registration(
     token = secrets.token_urlsafe(16)
     
     reg = Registration(
-        full_name=payload.full_name,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        other_names=payload.other_names,
+        date_of_birth=datetime.strptime(payload.date_of_birth, "%Y-%m-%d").date(),
+        profession=payload.profession,
+        student_status=payload.student_status,
+        school_name=payload.school_name,
+        invitation_by_someone=payload.invitation_by_someone,
+        invitation_by_who=payload.invitation_by_who,
         phone_e164=e164_phone,
         church=payload.church,
         attended_before=payload.attended_before,

@@ -27,8 +27,8 @@ from app.models.user import User
 
 # ── Event dates (Africa/Accra = UTC+0) ────────────────────────────────────────
 # Registration closes at the very end of 26 Dec 2026.
-REGISTRATION_CLOSES_AT = datetime(2026, 12, 26, 23, 59, 59, tzinfo=UTC)
-EVENT_START = datetime(2026, 12, 23, 0, 0, 0, tzinfo=UTC)
+REGISTRATION_CLOSES_AT = datetime(2026, 12, 26, 18, 59, 59, tzinfo=UTC)
+EVENT_START = datetime(2026, 12, 23, 12, 0, 0, tzinfo=UTC)
 EVENT_END = datetime(2026, 12, 26, 23, 59, 59, tzinfo=UTC)
 
 

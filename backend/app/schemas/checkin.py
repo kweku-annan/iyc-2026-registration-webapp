@@ -6,7 +6,16 @@ class CheckinLookupResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
     id: int
-    full_name: str
+    first_name: str
+    last_name: str
+    other_names: Optional[str]
+    date_of_birth: str
+    profession: str
+    student_status: bool
+    school_name: Optional[str]
+    invitation_by_someone: bool
+    invitation_by_who: Optional[str]
+    attended_before: bool
     phone_e164: str
     church: str
     ticket_code: str
@@ -15,7 +24,16 @@ class CheckinLookupResponse(BaseModel):
     source: str
 
 class WalkInRegistrationCreate(BaseModel):
-    full_name: str
+    first_name: str
+    last_name: str
+    other_names: Optional[str]
+    date_of_birth: str
+    profession: str
+    student_status: bool
+    school_name: Optional[str]
+    invitation_by_someone: bool
+    invitation_by_who: Optional[str]
+    attended_before: bool
     phone: str  # Frontend sends local or intl, backend normalizes
     church: str
     attended_before: bool

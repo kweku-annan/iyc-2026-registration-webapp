@@ -33,7 +33,9 @@ class RegistrationCreate(BaseModel):
 
 
 class TicketResponse(BaseModel):
-    full_name: str
+    first_name: str
+    last_name: str
+    other_names: str | None
     ticket_code: str
     ticket_token: str
 
