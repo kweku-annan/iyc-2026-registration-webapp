@@ -66,11 +66,19 @@ A single-event website. Primary purpose: **registration**. Also: testimonials, P
 
 **registrations**
 - id
-- full_name
+- first_name
+- last_name
+- other_names (nullable)
+- date_of_birth
+- age (calculated at registration time)
+- profession
+- student_status
+- school_name (nullable)
+- invitation_by_someone
+- invitation_by_who (nullable)
 - phone_e164 (**UNIQUE**, normalized E.164; international numbers allowed, default region GH)
 - church
 - attended_before (bool)
-- (other confirmed fields)
 - ticket_code (**UNIQUE**, 8 chars, shown as `XXXX-XXXX`)
 - ticket_token (**UNIQUE**, 16+ bytes url-safe, for the personal ticket page)
 - source (`online|walk_in`)

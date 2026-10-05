@@ -2,8 +2,8 @@
  * FormField — wraps a label, input/control, and an optional error message.
  *
  * Usage:
- *   <FormField label="Full Name" error={errors.full_name?.message} htmlFor="full-name">
- *     <Input id="full-name" {...register("full_name")} error={!!errors.full_name} />
+ *   <FormField label="First Name" error={errors.first_name?.message} htmlFor="first-name">
+ *     <Input id="first-name" {...register("first_name")} error={!!errors.first_name} />
  *   </FormField>
  */
 

@@ -22,18 +22,42 @@ export interface RegistrationResult {
 }
 
 export interface TicketData {
-  full_name: string;
+  first_name: string;
+  last_name: string;
+  other_names: string | null;
+  date_of_birth: string;
+  age: number;
+  profession: string;
+  student_status: boolean;
+  school_name: string | null;
+  invitation_by_someone: boolean;
+  invitation_by_who: string | null;
+  church: string;
+  attended_before: boolean;
   ticket_code: string;
   ticket_token: string;
 }
 
 export interface RegistrationPayload {
-  full_name: string;
+  first_name: string;
+  last_name: string;
+  other_names: string | null;
+  date_of_birth: string;
+  profession: string;
+  student_status: boolean;
+  school_name: string | null;
+  invitation_by_someone: boolean;
+  invitation_by_who: string | null;
   phone: string;
   church: string;
   attended_before: boolean;
   otp_token: string;
   website: ""; // honeypot — always empty
+}
+
+export interface OtpSendResponse {
+    detail: string;
+    already_registered: boolean;
 }
 
 // ── Queries ────────────────────────────────────────────────────────────────────
@@ -59,12 +83,22 @@ export function useTicket(token: string | undefined) {
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
+// export function useSendOtp(
+//   options?: UseMutationOptions<{ detail: string }, HttpError, { phone: string }>,
+// ) {
+//   return useMutation({
+//     mutationFn: (payload: { phone: string }) =>
+//       api.post<{ detail: string }>("/registrations/otp/send", payload),
+//     ...options,
+//   });
+// }
+
 export function useSendOtp(
-  options?: UseMutationOptions<{ detail: string }, HttpError, { phone: string }>,
+    options?: UseMutationOptions<OtpSendResponse, HttpError, { phone: string }>,
 ) {
   return useMutation({
     mutationFn: (payload: { phone: string }) =>
-      api.post<{ detail: string }>("/registrations/otp/send", payload),
+      api.post<OtpSendResponse>("/registrations/otp/send", payload),
     ...options,
   });
 }
@@ -100,7 +134,16 @@ export interface AdminStats {
 
 export interface AdminRegistration {
   id: number;
-  full_name: string;
+  first_name: string;
+  last_name: string;
+  other_names: string | null;
+  date_of_birth: string;
+  age: number;
+  profession: string;
+  student_status: boolean;
+  school_name: string | null;
+  invitation_by_someone: boolean;
+  invitation_by_who: string | null;
   phone_e164: string;
   church: string;
   attended_before: boolean;
@@ -515,7 +558,16 @@ export function useDeleteUser(csrfToken: string) {
 
 export interface CheckinLookupResult {
   id: number;
-  full_name: string;
+  first_name: string;
+  last_name: string;
+  other_names: string | null;
+  date_of_birth: string;
+  age: number;
+  profession: string;
+  student_status: boolean;
+  school_name: string | null;
+  invitation_by_someone: boolean;
+  invitation_by_who: string | null;
   phone_e164: string;
   church: string;
   ticket_code: string;

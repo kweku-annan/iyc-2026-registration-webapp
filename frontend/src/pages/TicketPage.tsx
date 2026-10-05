@@ -152,7 +152,7 @@ export function TicketPage() {
                 Registered Attendee
               </p>
               <p className="font-serif text-2xl" style={{ color: "var(--color-ice)" }}>
-                {ticket.full_name}
+                {[ticket.first_name, ticket.other_names, ticket.last_name].filter(Boolean).join(" ")}
               </p>
             </div>
           </div>

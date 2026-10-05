@@ -2,7 +2,7 @@
  * Registration flow — 3 steps:
  *  1. Phone    — phone input with country selector (defaults to GH)
  *  2. OTP      — 6-digit code verification
- *  3. Details  — full name, church, attended before
+ *  3. Details  — attendee profile and church details
  *
  * On success, redirects to /ticket/:token
  *
@@ -153,10 +153,18 @@ function RegistrationClosed() {
 // ── Zod schemas ─────────────────────────────────────────────────────────────
 
 const detailsSchema = z.object({
-  full_name: z
+  first_name: z
     .string()
-    .min(2, "Full name must be at least 2 characters")
-    .max(150, "Full name is too long"),
+    .min(2, "First name must be at least 2 characters")
+    .max(150, "First name is too long"),
+  last_name: z.string().min(2, "Last name must be at least 2 characters").max(150),
+  other_names: z.string().max(150).optional(),
+  date_of_birth: z.string().min(1, "Date of birth is required"),
+  profession: z.string().min(2, "Profession must be at least 2 characters").max(150),
+  student_status: z.enum(["yes", "no"], { required_error: "Please select an option" }),
+  school_name: z.string().max(150).optional(),
+  invitation_by_someone: z.enum(["yes", "no"], { required_error: "Please select an option" }),
+  invitation_by_who: z.string().max(150).optional(),
   church: z
     .string()
     .min(2, "Church name must be at least 2 characters")
@@ -215,15 +223,43 @@ export function RegisterPage() {
   useEffect(() => () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }, []);
 
   // ── Step 1: Send OTP ──────────────────────────────────────────────────────
+  // async function handleSendOtp(isResend = false) {
+  //   setPhoneError("");
+  //   if (!phone || !isValidPhoneNumber(phone)) {
+  //     setPhoneError("Please enter a valid phone number.");
+  //     return;
+  //   }
+  //
+  //   try {
+  //     await sendOtp.mutateAsync({ phone });
+  //     startCooldown();
+  //     if (!isResend) {
+  //       setStep("otp");
+  //     } else {
+  //       notify("A new code has been sent to your phone.", "success");
+  //     }
+  //   } catch (err) {
+  //     setPhoneError(extractError(err));
+  //   }
+  // }
+
   async function handleSendOtp(isResend = false) {
     setPhoneError("");
+
     if (!phone || !isValidPhoneNumber(phone)) {
       setPhoneError("Please enter a valid phone number.");
       return;
     }
 
     try {
-      await sendOtp.mutateAsync({ phone });
+      const result = await sendOtp.mutateAsync({ phone });
+
+      // Existing users do not reeceive an OTP and do not continue to the OTP step.
+      if (result.already_registered) {
+        notify(result.detail, "info", 8000);
+        return;
+      }
+
       startCooldown();
       if (!isResend) {
         setStep("otp");
@@ -231,7 +267,7 @@ export function RegisterPage() {
         notify("A new code has been sent to your phone.", "success");
       }
     } catch (err) {
-      setPhoneError(extractError(err));
+        setPhoneError(extractError(err));
     }
   }
 
@@ -257,7 +293,15 @@ export function RegisterPage() {
     setSubmitError("");
     try {
       const result = await createReg.mutateAsync({
-        full_name: data.full_name,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        other_names: data.other_names || null,
+        date_of_birth: data.date_of_birth,
+        profession: data.profession,
+        student_status: data.student_status === "yes",
+        school_name: data.school_name || null,
+        invitation_by_someone: data.invitation_by_someone === "yes",
+        invitation_by_who: data.invitation_by_who || null,
         phone,
         church: data.church,
         attended_before: data.attended_before === "yes",
@@ -456,20 +500,61 @@ export function RegisterPage() {
               className="flex flex-col gap-5"
               noValidate
             >
-              <FormField
-                label="Full Name"
-                htmlFor="full-name"
-                required
-                error={errors.full_name?.message}
-              >
+              <FormField label="First Name" htmlFor="first-name" required error={errors.first_name?.message}>
                 <Input
-                  id="full-name"
+                  id="first-name"
                   type="text"
-                  placeholder="e.g. Kofi Mensah"
-                  autoComplete="name"
-                  error={!!errors.full_name}
-                  {...register("full_name")}
+                  placeholder="e.g. Kofi"
+                  autoComplete="given-name"
+                  error={!!errors.first_name}
+                  {...register("first_name")}
                 />
+              </FormField>
+
+              <FormField label="Last Name" htmlFor="last-name" required error={errors.last_name?.message}>
+                <Input id="last-name" type="text" placeholder="e.g. Mensah" autoComplete="family-name" error={!!errors.last_name} {...register("last_name")} />
+              </FormField>
+
+              <FormField label="Other Names" htmlFor="other-names" error={errors.other_names?.message}>
+                <Input id="other-names" type="text" placeholder="Optional" error={!!errors.other_names} {...register("other_names")} />
+              </FormField>
+
+              <FormField label="Date of Birth" htmlFor="date-of-birth" required error={errors.date_of_birth?.message}>
+                <Input id="date-of-birth" type="date" error={!!errors.date_of_birth} {...register("date_of_birth")} />
+              </FormField>
+
+              <FormField label="Profession" htmlFor="profession" required error={errors.profession?.message}>
+                <Input id="profession" type="text" placeholder="e.g. Teacher" error={!!errors.profession} {...register("profession")} />
+              </FormField>
+
+              <FormField label="Are you a student?" htmlFor="student-status-yes" required error={errors.student_status?.message}>
+                <div className="flex gap-3">
+                  {(["yes", "no"] as const).map((val) => (
+                    <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium" style={{ border: "1px solid rgba(103,163,177,0.4)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.8)" }}>
+                      <input type="radio" id={`student-status-${val}`} value={val} className="sr-only" {...register("student_status")} />
+                      {val === "yes" ? "Yes" : "No"}
+                    </label>
+                  ))}
+                </div>
+              </FormField>
+
+              <FormField label="School Name" htmlFor="school-name" error={errors.school_name?.message}>
+                <Input id="school-name" type="text" placeholder="Optional" error={!!errors.school_name} {...register("school_name")} />
+              </FormField>
+
+              <FormField label="Were you invited by someone?" htmlFor="invitation-yes" required error={errors.invitation_by_someone?.message}>
+                <div className="flex gap-3">
+                  {(["yes", "no"] as const).map((val) => (
+                    <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium" style={{ border: "1px solid rgba(103,163,177,0.4)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.8)" }}>
+                      <input type="radio" id={`invitation-${val}`} value={val} className="sr-only" {...register("invitation_by_someone")} />
+                      {val === "yes" ? "Yes" : "No"}
+                    </label>
+                  ))}
+                </div>
+              </FormField>
+
+              <FormField label="Invited By (Name)" htmlFor="invitation-by-who" error={errors.invitation_by_who?.message}>
+                <Input id="invitation-by-who" type="text" placeholder="Optional" error={!!errors.invitation_by_who} {...register("invitation_by_who")} />
               </FormField>
 
               <FormField

@@ -39,7 +39,15 @@ export function CheckinPage() {
   const confirmMutation = useCheckinConfirm(csrfToken || "");
   const walkInMutation = useWalkInRegistration(csrfToken || "");
 
-  const [walkinName, setWalkinName] = useState("");
+  const [walkinFirstName, setWalkinFirstName] = useState("");
+  const [walkinLastName, setWalkinLastName] = useState("");
+  const [walkinOtherNames, setWalkinOtherNames] = useState("");
+  const [walkinDob, setWalkinDob] = useState("");
+  const [walkinProfession, setWalkinProfession] = useState("");
+  const [walkinStudent, setWalkinStudent] = useState(false);
+  const [walkinSchool, setWalkinSchool] = useState("");
+  const [walkinInvited, setWalkinInvited] = useState(false);
+  const [walkinInvitedBy, setWalkinInvitedBy] = useState("");
   const [walkinPhone, setWalkinPhone] = useState("");
   const [walkinChurch, setWalkinChurch] = useState("");
   const [walkinAttended, setWalkinAttended] = useState(false);
@@ -61,11 +69,19 @@ export function CheckinPage() {
   const handleWalkIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setWalkinError("");
-    if (!walkinName || !walkinPhone || !walkinChurch) return;
+    if (!walkinFirstName || !walkinLastName || !walkinDob || !walkinProfession || !walkinPhone || !walkinChurch) return;
 
     try {
       const res = await walkInMutation.mutateAsync({
-        full_name: walkinName,
+        first_name: walkinFirstName,
+        last_name: walkinLastName,
+        other_names: walkinOtherNames || null,
+        date_of_birth: walkinDob,
+        profession: walkinProfession,
+        student_status: walkinStudent,
+        school_name: walkinSchool || null,
+        invitation_by_someone: walkinInvited,
+        invitation_by_who: walkinInvitedBy || null,
         phone: walkinPhone,
         church: walkinChurch,
         attended_before: walkinAttended
@@ -73,7 +89,15 @@ export function CheckinPage() {
       alert(`Walk-in registered and checked in successfully! Ticket: ${res.ticket_code}`);
       
       // Reset form
-      setWalkinName("");
+      setWalkinFirstName("");
+      setWalkinLastName("");
+      setWalkinOtherNames("");
+      setWalkinDob("");
+      setWalkinProfession("");
+      setWalkinStudent(false);
+      setWalkinSchool("");
+      setWalkinInvited(false);
+      setWalkinInvitedBy("");
       setWalkinPhone("");
       setWalkinChurch("");
       setWalkinAttended(false);
@@ -137,7 +161,7 @@ export function CheckinPage() {
               {results.map(reg => (
                 <div key={reg.id} className="bg-white/10 border border-white/20 rounded-xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="text-white text-center md:text-left">
-                    <h3 className="text-xl font-semibold text-ice">{reg.full_name}</h3>
+                    <h3 className="text-xl font-semibold text-ice">{[reg.first_name, reg.other_names, reg.last_name].filter(Boolean).join(" ")}</h3>
                     <p className="text-white/70">{reg.church}</p>
                     <p className="text-white/50 text-sm">{reg.phone_e164} • Code: {reg.ticket_code}</p>
                     {reg.source === 'walk_in' && <span className="inline-block px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs mt-2">Walk-in</span>}
@@ -176,15 +200,35 @@ export function CheckinPage() {
               )}
               
               <div>
-                <label className="block text-white/70 text-sm mb-1">Full Name</label>
+                <label className="block text-white/70 text-sm mb-1">First Name</label>
                 <input
                   type="text"
                   required
-                  value={walkinName}
-                  onChange={e => setWalkinName(e.target.value)}
+                  value={walkinFirstName}
+                  onChange={e => setWalkinFirstName(e.target.value)}
                   className="w-full bg-deep border border-white/20 rounded-lg px-4 py-3 outline-none focus:border-ice"
-                  placeholder="Jane Doe"
+                  placeholder="Jane"
                 />
+              </div>
+
+              <div>
+                <label className="block text-white/70 text-sm mb-1">Last Name</label>
+                <input type="text" required value={walkinLastName} onChange={e => setWalkinLastName(e.target.value)} className="w-full bg-deep border border-white/20 rounded-lg px-4 py-3 outline-none focus:border-ice" placeholder="Doe" />
+              </div>
+
+              <div>
+                <label className="block text-white/70 text-sm mb-1">Other Names</label>
+                <input type="text" value={walkinOtherNames} onChange={e => setWalkinOtherNames(e.target.value)} className="w-full bg-deep border border-white/20 rounded-lg px-4 py-3 outline-none focus:border-ice" />
+              </div>
+
+              <div>
+                <label className="block text-white/70 text-sm mb-1">Date of Birth</label>
+                <input type="date" required value={walkinDob} onChange={e => setWalkinDob(e.target.value)} className="w-full bg-deep border border-white/20 rounded-lg px-4 py-3 outline-none focus:border-ice" />
+              </div>
+
+              <div>
+                <label className="block text-white/70 text-sm mb-1">Profession</label>
+                <input type="text" required value={walkinProfession} onChange={e => setWalkinProfession(e.target.value)} className="w-full bg-deep border border-white/20 rounded-lg px-4 py-3 outline-none focus:border-ice" />
               </div>
 
               <div>
@@ -220,6 +264,17 @@ export function CheckinPage() {
                 />
                 <label htmlFor="attended" className="text-white/80">Has attended IYC before?</label>
               </div>
+
+              <div className="flex items-center gap-3">
+                <input type="checkbox" checked={walkinStudent} onChange={e => setWalkinStudent(e.target.checked)} className="w-5 h-5 accent-ice" />
+                <label className="text-white/80">Is a student?</label>
+              </div>
+              {walkinStudent && <input type="text" value={walkinSchool} onChange={e => setWalkinSchool(e.target.value)} placeholder="School name" className="w-full bg-deep border border-white/20 rounded-lg px-4 py-3 outline-none focus:border-ice" />}
+              <div className="flex items-center gap-3">
+                <input type="checkbox" checked={walkinInvited} onChange={e => setWalkinInvited(e.target.checked)} className="w-5 h-5 accent-ice" />
+                <label className="text-white/80">Was invited by someone?</label>
+              </div>
+              {walkinInvited && <input type="text" value={walkinInvitedBy} onChange={e => setWalkinInvitedBy(e.target.value)} placeholder="Invited by (name)" className="w-full bg-deep border border-white/20 rounded-lg px-4 py-3 outline-none focus:border-ice" />}
 
               <button
                 type="submit"

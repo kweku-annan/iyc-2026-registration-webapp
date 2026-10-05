@@ -36,6 +36,10 @@ function formatDate(iso: string | null): string {
   });
 }
 
+function displayName(reg: AdminRegistration): string {
+  return [reg.first_name, reg.other_names, reg.last_name].filter(Boolean).join(" ");
+}
+
 // ── Confirm dialog ─────────────────────────────────────────────────────────────
 
 function ConfirmDialog({
@@ -162,7 +166,7 @@ export function AdminRegistrationsPage() {
       await anonymize.mutateAsync(confirmReg.id);
       await qc.invalidateQueries({ queryKey: ["admin", "registrations"] });
       await qc.invalidateQueries({ queryKey: ["admin", "stats"] });
-      notify(`${confirmReg.full_name}'s data has been anonymized.`, "success");
+      notify(`${displayName(confirmReg)}'s data has been anonymized.`, "success");
     } catch (err) {
       const msg = err instanceof HttpError ? err.body.detail : "Failed to anonymize.";
       notify(msg, "error");
@@ -281,7 +285,7 @@ export function AdminRegistrationsPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
             <thead>
               <tr>
-                {["Name", "Phone", "Church", "Code", "Source", "Registered", "Checked In", ""].map((h) => (
+                {["Name", "Age", "Profession", "School", "Phone", "Church", "Code", "Source", "Registered", "Checked In", ""].map((h) => (
                   <th key={h} scope="col" style={TH}>{h}</th>
                 ))}
               </tr>
@@ -294,7 +298,10 @@ export function AdminRegistrationsPage() {
                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(216,245,249,0.04)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
-                  <td style={{ ...TD, color: "white", fontWeight: 500 }}>{reg.full_name}</td>
+                  <td style={{ ...TD, color: "white", fontWeight: 500 }}>{displayName(reg)}</td>
+                  <td style={TD}>{reg.age}</td>
+                  <td style={TD}>{reg.profession}</td>
+                  <td style={TD}>{reg.school_name ?? "—"}</td>
                   <td style={TD}>{reg.phone_e164}</td>
                   <td style={{ ...TD, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis" }}>
                     {reg.church}
@@ -327,11 +334,11 @@ export function AdminRegistrationsPage() {
                     )}
                   </td>
                   <td style={{ ...TD, textAlign: "right" }}>
-                    {!reg.full_name.startsWith("Anonymized") && (
+                    {!reg.first_name.startsWith("Anonymized") && (
                       <button
                         id={`anonymize-btn-${reg.id}`}
                         onClick={() => setConfirmReg(reg)}
-                        aria-label={`Anonymize ${reg.full_name}`}
+                        aria-label={`Anonymize ${displayName(reg)}`}
                         style={{
                           background: "transparent",
                           border: "1px solid rgba(239,68,68,0.3)",
@@ -399,7 +406,7 @@ export function AdminRegistrationsPage() {
       {/* Confirm dialog */}
       {confirmReg && (
         <ConfirmDialog
-          name={confirmReg.full_name}
+          name={displayName(confirmReg)}
           onConfirm={handleAnonymize}
           onCancel={() => setConfirmReg(null)}
           loading={anonymize.isPending}
