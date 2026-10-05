@@ -27,12 +27,13 @@ import { HttpError } from "../lib/api";
 
 // ── Step indicator ──────────────────────────────────────────────────────────
 
-type Step = "phone" | "otp" | "details";
+type Step = "phone" | "otp" | "details" | "already_registered";
 
 const STEPS: { id: Step; label: string }[] = [
   { id: "phone", label: "Phone" },
   { id: "otp", label: "Verify" },
   { id: "details", label: "Details" },
+  { id: "already_registered", label: "Done" },
 ];
 
 function StepIndicator({ current }: { current: Step }) {
@@ -256,7 +257,7 @@ export function RegisterPage() {
 
       // Existing users do not reeceive an OTP and do not continue to the OTP step.
       if (result.already_registered) {
-        notify(result.detail, "info", 8000);
+        setStep("already_registered");
         return;
       }
 
@@ -419,6 +420,58 @@ export function RegisterPage() {
               Send Verification Code
             </Button>
           </Card>
+        )}
+
+        {/*  -- Already Registered Step --*/}
+        {step === "already_registered" && (
+            <Card>
+                <div className="text-center flex flex-col items-center gap-6">
+                  <div
+                     className="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                     style={{
+                        background: "rgba(216,245,249,0.15)",
+                        border: "1px solid rgba(216,245,249,0.35)",
+                        color: "var(--color-ice)",
+                        boxShadow: "0 0 30px rgba(216,245,249,0.15)",
+                     }}
+                     aria-hidden="true"
+                  >
+                    ✓
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <h2
+                      className="font-serif text-2xl sm:text-3xl"
+                      style={{ color: "var(--color-ice)" }}
+                    >
+                     You are already registered
+                    </h2>
+                    <p
+                        className="font-sans text-sm sm:text-base leading-relaxed"
+                        style={{ color: "rgba(255,255,255,0.72)" }}
+                    >
+                     Your registration has already been completed. Your ticket number and ticket
+                     link have been sent to your phone by SMS.
+                    </p>
+
+                    <p
+                      className="font-sans text-sm leading-relaxed"
+                      style={{ color: "rgba(255,255,255,0.55)" }}
+                    >
+                    Please check your messages. If you did not receive the SMS,
+                      please contact the organizers for assistance.
+                    </p>
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    onClick={() => navigate("/")}
+                  >
+                    Go to Home
+                  </Button>
+                </div>
+            </Card>
         )}
 
         {/* ── STEP 2: OTP ── */}
