@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, func, Date, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -14,7 +14,16 @@ class Registration(Base):
     __tablename__ = "registrations"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    other_names: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    date_of_birth: Mapped[datetime] = mapped_column(Date, nullable=False)
+    age: Mapped[int] = mapped_column(Integer, nullable=False)  # calculated at registration time
+    profession: Mapped[str] = mapped_column(String(100), nullable=False)
+    student_status: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    school_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    invitation_by_someone: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    invitation_by_who: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # E.164 format enforced by the phone service before insert.
     phone_e164: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
     church: Mapped[str] = mapped_column(String(255), nullable=False)
