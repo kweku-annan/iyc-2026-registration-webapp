@@ -7,24 +7,17 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from app.core.config import settings as app_settings
 from app.core.database import get_db
-from app.core.exceptions import AppError
-from app.models.registration import Registration
 from app.models.settings import Settings
 from app.schemas.otp import OtpSendRequest, OtpVerifyRequest, OtpVerifyResponse
 from app.schemas.registration import RegistrationCreate, RegistrationStatusResponse
 from app.services.otp import (
-    _check_ip_rate_limit,
     ensure_utc,
     send_otp,
     verify_otp,
-    verify_otp_token,
 )
 from app.services.phones import normalize_phone
-from app.services.registration import create_registration
-from app.services.sms import send_sms
-from app.services.tickets import generate_ticket_token, generate_unique_ticket_code
+from app.services.registration import create_registration as create_registration_service
 
 router = APIRouter(prefix="/registrations", tags=["registrations"])
 
@@ -75,8 +68,13 @@ def create_registration(
     request: Request,
     payload: RegistrationCreate,
     db: Session = Depends(get_db),  # noqa: B008
-) -> dict[str, str]:
+) -> dict:
     """Submit a registration."""
-    reg = create_registration(payload, request, db)
+    reg, existing = create_registration_service(payload, request, db)
+    detail = (
+        f"Hi {existing.first_name.upper()} You have already registered. Your ticket link has been resent via SMS."
+        if existing
+        else f"Congratulations {reg.first_name.upper()}! Your registration was successful. Your ticket code has been sent via SMS."
+    )
 
-    return {"detail": "Registration successful", "ticket_token": reg.ticket_token}
+    return {"detail": detail}

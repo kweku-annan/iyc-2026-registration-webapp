@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, UTC, date
+from typing import Literal
 
 from fastapi import Depends, Request
 from sqlalchemy.orm import Session
@@ -11,27 +12,22 @@ from app.core.database import get_db
 from app.core.exceptions import AppError
 from app.models.registration import Registration
 from app.models.settings import Settings
-from app.schemas.otp import OtpSendRequest, OtpVerifyRequest, OtpVerifyResponse
 from app.schemas.registration import RegistrationCreate
 from app.services.otp import (
     _check_ip_rate_limit,
     ensure_utc,
-    send_otp,
-    verify_otp,
     verify_otp_token,
 )
 from app.services.phones import normalize_phone
 from app.services.sms import send_sms
 from app.services.tickets import generate_ticket_token, generate_unique_ticket_code
 
-from backend.app.models.registration import Registration
-
 
 def create_registration(
         payload: RegistrationCreate,
         request: Request,
-        db: Session = Depends(get_db),  # noqa: B008
-) -> Registration | dict:
+        db: Session,  # noqa: B008
+) -> tuple[Registration, Literal[False]] | tuple[dict, Literal[True]]:
     """Creates a new registration and performs necessary checks and logics"""
 
     # 1. Honey pot check: Check if this is from a bot
@@ -67,7 +63,7 @@ def create_registration(
         message = f"Hi {existing.first_name.upper()}!\nYou have already registered for IYC 2026. Your ticket code is {existing.ticket_code}. You can view your ticket here: {url}"
         send_sms(db, existing.phone_e164, "registration_duplicate", message)
 
-        return {"detail": f"Hi {existing.first_name.upper()} You have already registered. Your ticket link has been resent via SMS."}
+        return {"detail": f"Hi {existing.first_name.upper()} You have already registered. Your ticket link has been resent via SMS."}, True
 
     # 5 Create Registration
     ticket_code = generate_unique_ticket_code(db)
@@ -103,7 +99,7 @@ def create_registration(
     url = f"{app_settings.frontend_origin}/ticket/{reg.ticket_token}"
     message = f"Hi {reg.first_name.upper()}!\nRegistration successful! Your IYC-2026 ticket code is {reg.ticket_code}. You can view your ticket here: {url}"
     send_sms(db, reg.phone_e164, "registration_success", message)
-    return reg
+    return reg, False
 
 
 

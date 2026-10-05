@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, date
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, func, Date, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -17,7 +17,7 @@ class Registration(Base):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     other_names: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    date_of_birth: Mapped[datetime] = mapped_column(Date, nullable=False)
+    date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
     age: Mapped[int] = mapped_column(Integer, nullable=False)  # calculated at registration time
     profession: Mapped[str] = mapped_column(String(100), nullable=False)
     student_status: Mapped[bool] = mapped_column(Boolean, nullable=False)
