@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -10,10 +12,10 @@ class RegistrationStatusResponse(BaseModel):
 
 
 class RegistrationCreate(BaseModel):
-    first_name: str = Field(..., min_length=2, max_length=150, description="Full name of registrant")
+    first_name: str = Field(..., min_length=2, max_length=150, description="First name of registrant")
     last_name: str = Field(..., min_length=2, max_length=150, description="Last name of registrant")
     other_names: str | None = Field(None, min_length=2, max_length=150, description="Other names of registrant")
-    date_of_birth: str = Field(..., description="Date of birth in YYYY-MM-DD format")
+    date_of_birth: date = Field(..., description="Date of birth in YYYY-MM-DD format")
     profession: str = Field(..., min_length=2, max_length=150, description="Profession of registrant")
     student_status: bool = Field(..., description="Whether the registrant is a student")
     school_name: str | None = Field(None, min_length=2, max_length=150, description="Name of the school if student_status is True")
@@ -36,6 +38,15 @@ class TicketResponse(BaseModel):
     first_name: str
     last_name: str
     other_names: str | None
+    date_of_birth: date
+    age: int
+    profession: str
+    student_status: bool
+    school_name: str | None
+    invitation_by_someone: bool
+    invitation_by_who: str | None
+    church: str
+    attended_before: bool
     ticket_code: str
     ticket_token: str
 

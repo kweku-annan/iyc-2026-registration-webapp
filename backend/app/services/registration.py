@@ -27,7 +27,7 @@ def create_registration(
         payload: RegistrationCreate,
         request: Request,
         db: Session,  # noqa: B008
-) -> tuple[Registration, Literal[False]] | tuple[dict, Literal[True]]:
+) -> tuple[Registration, Literal[False]] | tuple[Registration, Literal[True]]:
     """Creates a new registration and performs necessary checks and logics"""
 
     # 1. Honey pot check: Check if this is from a bot
@@ -63,19 +63,19 @@ def create_registration(
         message = f"Hi {existing.first_name.upper()}!\nYou have already registered for IYC 2026. Your ticket code is {existing.ticket_code}. You can view your ticket here: {url}"
         send_sms(db, existing.phone_e164, "registration_duplicate", message)
 
-        return {"detail": f"Hi {existing.first_name.upper()} You have already registered. Your ticket link has been resent via SMS."}, True
+        return existing, True
 
     # 5 Create Registration
     ticket_code = generate_unique_ticket_code(db)
     ticket_token = generate_ticket_token()
 
-    age = calculate_age(datetime.strptime(payload.date_of_birth, "%Y-%m-%d").date())
+    age = calculate_age(payload.date_of_birth)
 
     reg = Registration(
         first_name=payload.first_name,
         last_name=payload.last_name,
         other_names=payload.other_names,
-        date_of_birth=datetime.strptime(payload.date_of_birth, "%Y-%m-%d").date(),
+        date_of_birth=payload.date_of_birth,
         profession=payload.profession,
         student_status=payload.student_status,
         school_name=payload.school_name,

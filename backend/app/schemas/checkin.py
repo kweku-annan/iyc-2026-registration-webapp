@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
@@ -9,7 +9,8 @@ class CheckinLookupResponse(BaseModel):
     first_name: str
     last_name: str
     other_names: Optional[str]
-    date_of_birth: str
+    date_of_birth: date
+    age: int
     profession: str
     student_status: bool
     school_name: Optional[str]
@@ -26,14 +27,13 @@ class CheckinLookupResponse(BaseModel):
 class WalkInRegistrationCreate(BaseModel):
     first_name: str
     last_name: str
-    other_names: Optional[str]
-    date_of_birth: str
+    other_names: Optional[str] = None
+    date_of_birth: date
     profession: str
     student_status: bool
-    school_name: Optional[str]
+    school_name: Optional[str] = None
     invitation_by_someone: bool
-    invitation_by_who: Optional[str]
-    attended_before: bool
+    invitation_by_who: Optional[str] = None
     phone: str  # Frontend sends local or intl, backend normalizes
     church: str
     attended_before: bool

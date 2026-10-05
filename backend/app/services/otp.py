@@ -12,6 +12,7 @@ import secrets
 import time
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
+from dataclasses import dataclass
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -19,6 +20,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.models.registration import Registration
 from app.core.exceptions import AppError, RateLimitError
 from app.models.otp_code import OtpCode
 from app.models.sms_log import SmsLog
@@ -40,6 +42,12 @@ _ip_tracker: dict[str, list[float]] = defaultdict(list)
 
 # Use argon2 for secure hashing
 ph = PasswordHasher()
+
+
+@dataclass(frozen=True)
+class OtpSendResult:
+    detail: str
+    already_registered: bool
 
 
 def ensure_utc(dt: datetime) -> datetime:
@@ -65,8 +73,8 @@ def _check_ip_rate_limit(ip_address: str) -> None:
     _ip_tracker[ip_address].append(now)
 
 
-def send_otp(db: Session, phone_e164: str, ip_address: str) -> None:
-    """Send an OTP code to the given phone number, enforcing limits.
+def send_otp(db: Session, phone_e164: str, ip_address: str) -> OtpSendResult:
+    """Send an OTP code to the given phone number or resend the ticket SMS for an existing registration, enforcing limits.
 
     Args:
         db: SQLAlchemy session.
@@ -79,6 +87,28 @@ def send_otp(db: Session, phone_e164: str, ip_address: str) -> None:
     _check_ip_rate_limit(ip_address)
 
     now = datetime.now(UTC)
+
+    existing_registration = (
+        db.query(Registration)
+        .filter(Registration.phone_e164 == phone_e164)
+        .first()
+    )
+
+    if existing_registration:
+        # Resend SMS with ticket code and return success without revealing data
+        url = f"{settings.frontend_origin}/ticket/{existing_registration.ticket_token}"
+        message = f"Hi {existing_registration.first_name.upper()}!\nYou have already registered for IYC 2026. Your ticket code is {existing_registration.ticket_code}. You can view your ticket here: {url}"
+        send_sms(
+            db=db,
+            to_phone=existing_registration.phone_e164,
+            template="registration_duplicate",
+            message=message,
+            registration_id=existing_registration.id
+        )
+        return OtpSendResult(
+            detail="You have already registered. Your ticket number has been sent to you via SMS.",
+            already_registered=True
+        )
 
     # Check cooldown (60 seconds)
     existing = db.get(OtpCode, phone_e164)
@@ -129,6 +159,10 @@ def send_otp(db: Session, phone_e164: str, ip_address: str) -> None:
         template="otp",
         message=message,
         registration_id=None
+    )
+    return OtpSendResult(
+        detail="OTP code sent successfully. Please check your SMS messages.",
+        already_registered=False
     )
 
 

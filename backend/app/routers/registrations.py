@@ -41,15 +41,18 @@ def request_otp(
     request: Request,
     payload: OtpSendRequest,
     db: Session = Depends(get_db),  # noqa: B008
-) -> dict[str, str]:
+) -> dict[str, str | bool]:
     """Send an OTP code to a phone number.
 
     Does not reveal if the phone is already registered.
     """
     ip_address = request.client.host if request.client else "unknown"
     phone_e164 = normalize_phone(payload.phone)
-    send_otp(db, phone_e164, ip_address)
-    return {"detail": "OTP requested"}
+    result = send_otp(db, phone_e164, ip_address)
+    return {
+        "detail": result.detail,
+        "already_registered": result.already_registered,
+    }
 
 
 @router.post("/otp/verify", response_model=OtpVerifyResponse)
@@ -72,9 +75,9 @@ def create_registration(
     """Submit a registration."""
     reg, existing = create_registration_service(payload, request, db)
     detail = (
-        f"Hi {existing.first_name.upper()} You have already registered. Your ticket link has been resent via SMS."
+        f"Hi {reg.first_name.upper()} You have already registered. Your ticket link has been resent via SMS."
         if existing
         else f"Congratulations {reg.first_name.upper()}! Your registration was successful. Your ticket code has been sent via SMS."
     )
 
-    return {"detail": detail}
+    return  {"detail": detail}

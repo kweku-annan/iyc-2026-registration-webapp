@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import phonenumbers
 from fastapi import APIRouter, Depends
 from sqlalchemy import or_, select
@@ -114,7 +114,7 @@ def walk_in_registration(
         first_name=payload.first_name,
         last_name=payload.last_name,
         other_names=payload.other_names,
-        date_of_birth=datetime.strptime(payload.date_of_birth, "%Y-%m-%d").date(),
+        date_of_birth=payload.date_of_birth,
         profession=payload.profession,
         student_status=payload.student_status,
         school_name=payload.school_name,
@@ -123,6 +123,7 @@ def walk_in_registration(
         phone_e164=e164_phone,
         church=payload.church,
         attended_before=payload.attended_before,
+        age=calculate_age(payload.date_of_birth),
         ticket_code=code,
         ticket_token=token,
         source="walk_in",
@@ -136,3 +137,10 @@ def walk_in_registration(
     db.refresh(reg)
     
     return reg
+
+
+def calculate_age(date_of_birth: date) -> int:
+    today = datetime.now(timezone.utc).date()
+    return today.year - date_of_birth.year - (
+        (today.month, today.day) < (date_of_birth.month, date_of_birth.day)
+    )

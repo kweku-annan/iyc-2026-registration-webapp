@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import io
+from datetime import date
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query
@@ -75,6 +76,7 @@ def get_registrations(
             or_(
                 Registration.first_name.ilike(search_pattern),
                 Registration.last_name.ilike(search_pattern),
+                Registration.other_names.ilike(search_pattern),
                 Registration.phone_e164.ilike(search_pattern),
                 Registration.ticket_code.ilike(search_pattern)
             )
@@ -103,8 +105,10 @@ def export_registrations_csv(db: Session = Depends(get_db)) -> StreamingResponse
 
     # Header
     writer.writerow([
-        "ID", "Full Name", "Phone (E.164)", "Church", "Attended Before",
-        "Ticket Code", "Source", "Registered At", "Verified At", "Checked In At"
+        "ID", "First Name", "Last Name", "Other Names", "Date of Birth",
+        "Age", "Profession", "Student", "School", "Invited By Someone", "Invited By",
+        "Phone (E.164)", "Church", "Attended Before", "Ticket Code", "Source",
+        "Registered At", "Verified At", "Checked In At"
     ])
 
     # Rows
@@ -115,6 +119,7 @@ def export_registrations_csv(db: Session = Depends(get_db)) -> StreamingResponse
             reg.last_name,
             reg.other_names or "",
             reg.date_of_birth,
+            reg.age,
             reg.profession,
             "Yes" if reg.student_status else "No",
             reg.school_name or "",
@@ -169,7 +174,16 @@ def anonymize_registration(
         raise AppError("Registration not found", code="not_found", status_code=404)
 
     # Overwrite PII, keeping structural integrity
-    reg.first_name = "Anonymized User"
+    reg.first_name = "Anonymized"
+    reg.last_name = "User"
+    reg.other_names = None
+    reg.date_of_birth = date(1900, 1, 1)
+    reg.age = 0
+    reg.profession = "Anonymized"
+    reg.student_status = False
+    reg.school_name = None
+    reg.invitation_by_someone = False
+    reg.invitation_by_who = None
     reg.phone_e164 = f"anon-{reg.ticket_code}"
     reg.church = "Anonymized"
 
