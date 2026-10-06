@@ -66,7 +66,7 @@ def verify_otp_endpoint(
     return OtpVerifyResponse(token=token)
 
 
-@router.post("", response_model=dict[str, str])
+@router.post("", response_model=dict[str, str | bool])
 def create_registration(
     request: Request,
     payload: RegistrationCreate,
@@ -80,4 +80,4 @@ def create_registration(
         else f"Congratulations {reg.first_name.upper()}! Your registration was successful. Your ticket code has been sent via SMS."
     )
 
-    return  {"detail": detail}
+    return  {"detail": detail, "already_registered": existing}

@@ -27,13 +27,13 @@ import { HttpError } from "../lib/api";
 
 // ── Step indicator ──────────────────────────────────────────────────────────
 
-type Step = "phone" | "otp" | "details" | "already_registered";
+type Step = "phone" | "otp" | "details" | "done";
 
 const STEPS: { id: Step; label: string }[] = [
   { id: "phone", label: "Phone" },
   { id: "otp", label: "Verify" },
   { id: "details", label: "Details" },
-  { id: "already_registered", label: "Done" },
+  { id: "done", label: "Done" },
 ];
 
 function StepIndicator({ current }: { current: Step }) {
@@ -187,6 +187,7 @@ export function RegisterPage() {
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState<string>("");
   const [phoneError, setPhoneError] = useState<string>("");
+  const [isExistingRegistration, setIsExistingRegistration] = useState(false);
   const [otpToken, setOtpToken] = useState<string>("");
   const [otpCode, setOtpCode] = useState<string>("");
   const [otpError, setOtpError] = useState<string>("");
@@ -257,7 +258,8 @@ export function RegisterPage() {
 
       // Existing users do not reeceive an OTP and do not continue to the OTP step.
       if (result.already_registered) {
-        setStep("already_registered");
+        setIsExistingRegistration(true);
+        setStep("done")
         return;
       }
 
@@ -310,13 +312,8 @@ export function RegisterPage() {
         website: "",
       });
 
-      if (result.ticket_token) {
-        navigate(`/ticket/${result.ticket_token}`);
-      } else {
-        // Duplicate: resent ticket link via SMS
-        notify(result.detail, "info", 8000);
-        navigate("/");
-      }
+      setIsExistingRegistration(result.already_registered);
+      setStep("done");
     } catch (err) {
       setSubmitError(extractError(err));
     }
@@ -423,7 +420,7 @@ export function RegisterPage() {
         )}
 
         {/*  -- Already Registered Step --*/}
-        {step === "already_registered" && (
+        {step === "done" && (
             <Card>
                 <div className="text-center flex flex-col items-center gap-6">
                   <div
@@ -439,29 +436,70 @@ export function RegisterPage() {
                     ✓
                   </div>
 
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-4">
                     <h2
                       className="font-serif text-2xl sm:text-3xl"
                       style={{ color: "var(--color-ice)" }}
                     >
-                     You are already registered
+                      {isExistingRegistration
+                          ? "You are already registered"
+                            : "Registration Complete"}
                     </h2>
                     <p
                         className="font-sans text-sm sm:text-base leading-relaxed"
                         style={{ color: "rgba(255,255,255,0.72)" }}
                     >
-                     Your registration has already been completed. Your ticket number and ticket
-                     link have been sent to your phone by SMS.
+                      {isExistingRegistration
+                          ? "Your registration has already been completed. Your ticket number and ticket link have been sent to your phone by SMS."
+                          : "Thank you for registering for IYC Camp Meeting 2026! Your ticket number and ticket link have been sent to your phone by SMS."}
                     </p>
-
+                    {!isExistingRegistration && (
+                    <p
+                      className="font-sans text-sm sm:text-base leading-relaxed"
+                      style={{ color: "rgba(255,255,255,0.72)" }}
+                    >
+                      Over the course of the weeks ahead, you will receive SMS messages from the
+                      organizers about activities and important information leading up to
+                      the program.
+                    </p>
+                    )}
                     <p
                       className="font-sans text-sm leading-relaxed"
                       style={{ color: "rgba(255,255,255,0.55)" }}
                     >
-                    Please check your messages. If you did not receive the SMS,
+                      Please check your messages. If you did not receive the SMS,
                       please contact the organizers for assistance.
                     </p>
                   </div>
+                  {!isExistingRegistration && (
+                    <div className="w-full flex flex-col gap-3">
+                      <a
+                        href="https://getdp.co/wD7"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center rounded-full font-sans font-semibold px-6 py-3 transition-all duration-200"
+                        style={{
+                          background: "var(--color-ice)",
+                          color: "var(--color-primary)",
+                          boxShadow: "0 0 30px rgba(216,245,249,0.25)",
+                        }}
+                      >
+                        Create Your Personalized IYC Flyer
+                      </a>
+
+                      <a
+                        href="/testimony"
+                        className="inline-flex items-center justify-center rounded-full font-sans font-semibold px-6 py-3 transition-all duration-200"
+                        style={{
+                          border: "1px solid rgba(103,163,177,0.5)",
+                          color: "var(--color-ice)",
+                          background: "transparent",
+                        }}
+                      >
+                        Share Your Testimony
+                      </a>
+                    </div>
+                  )}
 
                   <Button
                     variant="secondary"

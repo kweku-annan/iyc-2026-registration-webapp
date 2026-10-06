@@ -18,7 +18,7 @@ export interface OtpVerifyResponse {
 
 export interface RegistrationResult {
   detail: string;
-  ticket_token?: string;
+  already_registered: boolean;
 }
 
 export interface TicketData {
