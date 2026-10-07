@@ -23,17 +23,23 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-dvh flex flex-col">
       {/* ── Nav ────────────────────────────────────────────── */}
-      <header className="fixed inset-x-0 top-0 z-40">
-        {/* Glassmorphic bar */}
-        <nav
-          className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3"
-          aria-label="Main navigation"
+      <header className="relative w-full z-40">
+        <img 
+          src="/proper-dimension.webp" 
+          alt="Navigation Background" 
+          className="w-full h-auto block"
+        />
+        
+        <div 
+          className="absolute inset-0" 
           style={{
-            background: "rgba(28, 110, 134, 0.6)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            borderBottom: "1px solid rgba(103,163,177,0.25)",
+            background: "linear-gradient(to right, rgba(28, 110, 134, 0.85) 0%, rgba(28, 110, 134, 0.2) 100%)"
           }}
+        />
+
+        <nav
+          className="absolute inset-0 mx-auto flex w-full max-w-6xl items-center justify-between px-5"
+          aria-label="Main navigation"
         >
           {/* Logo / wordmark */}
           <Link
@@ -81,8 +87,7 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* ── Page content ───────────────────────────────────── */}
-      {/* Top-padding accounts for the fixed nav height (~60px) */}
-      <main className="flex-1 pt-[60px]">{children}</main>
+      <main className="flex-1">{children}</main>
 
       {/* ── Footer ─────────────────────────────────────────── */}
       <footer
