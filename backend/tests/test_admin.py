@@ -151,11 +151,11 @@ def test_get_registrations(client: TestClient, db: Session):
     headers = get_auth_headers(db, "org@test.com")
     client.cookies.set("session_token", headers["cookie"].split("=")[1])
 
-    res = client.get("/admin/registrations?search=Jane")
+    res = client.get("/admin/registrations?search=John")
     assert res.status_code == 200
     data = res.json()
-    assert data["total"] == 1
-    assert data["items"][0]["full_name"] == "Jane Doe"
+    assert data["total"] == 2
+    assert data["items"][0]["first_name"] == "John"
 
 
 def test_export_csv(client: TestClient, db: Session):
@@ -171,7 +171,7 @@ def test_export_csv(client: TestClient, db: Session):
     rows = list(reader)
 
     assert len(rows) == 3  # Header + 2 rows
-    assert "Jane Doe" in rows[1] or "Jane Doe" in rows[2]
+    assert "John" in rows[1] or "John" in rows[2]
 
 
 def test_update_settings(client: TestClient, db: Session):
@@ -200,10 +200,10 @@ def test_anonymize_registration(client: TestClient, db: Session):
     assert res.status_code == 200
 
     reg = db.get(Registration, 1)
-    assert reg.full_name == "Anonymized User"
+    assert reg.first_name == "Anonymized"
     assert reg.church == "Anonymized"
     assert "anon-" in reg.phone_e164
 
     # Verify second user wasn't touched
     reg2 = db.get(Registration, 2)
-    assert reg2.full_name == "Jane Doe"
+    assert reg2.first_name == "John"

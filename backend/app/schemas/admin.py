@@ -35,6 +35,8 @@ class AdminRegistrationResponse(BaseModel):
     profession: str
     student_status: bool
     school_name: str | None
+    location: str
+    accommodation_preference: str
     invitation_by_someone: bool
     invitation_by_who: str | None
     phone_e164: str

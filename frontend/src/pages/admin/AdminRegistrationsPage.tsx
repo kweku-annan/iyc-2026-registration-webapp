@@ -159,6 +159,17 @@ export function AdminRegistrationsPage() {
     a.click();
   }
 
+  // ── Excel Export ────────────────────────────────────────────────────────────
+  function handleExportExcel() {
+    const url = `${import.meta.env.VITE_API_URL ?? "http://localhost:8000"}/admin/registrations/export.xlsx`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "iyc-2026-registrations.xlsx";
+    // Include credentials by redirecting
+    a.target = "_blank";
+    a.click();
+  }
+
   // ── Anonymize ───────────────────────────────────────────────────────────────
   async function handleAnonymize() {
     if (!confirmReg) return;
@@ -230,14 +241,24 @@ export function AdminRegistrationsPage() {
           )}
         </div>
 
-        <Button
-          id="export-csv-btn"
-          variant="secondary"
-          size="sm"
-          onClick={handleExport}
-        >
-          📥 Export CSV
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            id="export-csv-btn"
+            variant="secondary"
+            size="sm"
+            onClick={handleExport}
+          >
+            📥 Export CSV
+          </Button>
+          <Button
+            id="export-excel-btn"
+            variant="secondary"
+            size="sm"
+            onClick={handleExportExcel}
+          >
+            📊 Export Excel
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -285,7 +306,7 @@ export function AdminRegistrationsPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
             <thead>
               <tr>
-                {["Name", "Age", "Profession", "School", "Phone", "Church", "Code", "Source", "Registered", "Checked In", ""].map((h) => (
+                {["Name", "Age", "Profession", "School", "Location", "Accommodation", "Phone", "Church", "Code", "Source", "Registered", "Checked In", ""].map((h) => (
                   <th key={h} scope="col" style={TH}>{h}</th>
                 ))}
               </tr>
@@ -302,6 +323,12 @@ export function AdminRegistrationsPage() {
                   <td style={TD}>{reg.age}</td>
                   <td style={TD}>{reg.profession}</td>
                   <td style={TD}>{reg.school_name ?? "—"}</td>
+                  <td style={TD}>{reg.location}</td>
+                  <td style={TD}>
+                    {reg.accommodation_preference === "camp_site" ? "Camp Site" : 
+                     reg.accommodation_preference === "hotel" ? "Hotel" : 
+                     reg.accommodation_preference === "hostel" ? "Hostel" : "—"}
+                  </td>
                   <td style={TD}>{reg.phone_e164}</td>
                   <td style={{ ...TD, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis" }}>
                     {reg.church}

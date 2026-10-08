@@ -106,7 +106,8 @@ def export_registrations_csv(db: Session = Depends(get_db)) -> StreamingResponse
     # Header
     writer.writerow([
         "ID", "First Name", "Last Name", "Other Names", "Date of Birth",
-        "Age", "Profession", "Student", "School", "Invited By Someone", "Invited By",
+        "Age", "Profession", "Student", "School", "Location", "Accommodation Preference", 
+        "Invited By Someone", "Invited By",
         "Phone (E.164)", "Church", "Attended Before", "Ticket Code", "Source",
         "Registered At", "Verified At", "Checked In At"
     ])
@@ -123,6 +124,8 @@ def export_registrations_csv(db: Session = Depends(get_db)) -> StreamingResponse
             reg.profession,
             "Yes" if reg.student_status else "No",
             reg.school_name or "",
+            reg.location or "",
+            reg.accommodation_preference or "",
             "Yes" if reg.invitation_by_someone else "No",
             reg.invitation_by_who or "",
             reg.phone_e164,
@@ -141,6 +144,77 @@ def export_registrations_csv(db: Session = Depends(get_db)) -> StreamingResponse
         iter([output.getvalue()]),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=iyc-2026-registrations.csv"}
+    )
+
+
+@router.get("/registrations/export.xlsx")
+def export_registrations_excel(db: Session = Depends(get_db)) -> StreamingResponse:  # noqa: B008
+    """Export all registrations as an Excel file."""
+    import openpyxl
+    from openpyxl.utils import get_column_letter
+
+    registrations = db.query(Registration).order_by(Registration.registered_at.desc()).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Registrations"
+
+    headers = [
+        "ID", "First Name", "Last Name", "Other Names", "Date of Birth",
+        "Age", "Profession", "Student", "School", "Location", "Accommodation Preference", 
+        "Invited By Someone", "Invited By",
+        "Phone (E.164)", "Church", "Attended Before", "Ticket Code", "Source",
+        "Registered At", "Verified At", "Checked In At"
+    ]
+    ws.append(headers)
+
+    for reg in registrations:
+        row = [
+            reg.id,
+            reg.first_name,
+            reg.last_name,
+            reg.other_names or "",
+            str(reg.date_of_birth) if reg.date_of_birth else "",
+            reg.age,
+            reg.profession,
+            "Yes" if reg.student_status else "No",
+            reg.school_name or "",
+            reg.location or "",
+            reg.accommodation_preference or "",
+            "Yes" if reg.invitation_by_someone else "No",
+            reg.invitation_by_who or "",
+            reg.phone_e164,
+            reg.church,
+            "Yes" if reg.attended_before else "No",
+            reg.ticket_code,
+            reg.source,
+            reg.registered_at.isoformat() if reg.registered_at else "",
+            reg.phone_verified_at.isoformat() if reg.phone_verified_at else "",
+            reg.checked_in_at.isoformat() if reg.checked_in_at else ""
+        ]
+        ws.append(row)
+
+    # Auto-adjust column widths
+    for col_idx, col_cells in enumerate(ws.columns, start=1):
+        max_length = 0
+        col_letter = get_column_letter(col_idx)
+        for cell in col_cells:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[col_letter].width = max_length + 2
+
+    # Save workbook to memory
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=iyc-2026-registrations.xlsx"}
     )
 
 
