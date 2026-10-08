@@ -33,11 +33,11 @@ import { GallerySection } from "../sections/GallerySection";
 // ── Phase-2 placeholder card ──────────────────────────────────────────────────
 
 function PlaceholderCard({
-  icon,
+  // icon,
   title,
   description,
 }: {
-  icon: string;
+  // icon: string;
   title: string;
   description: string;
 }) {
@@ -50,7 +50,7 @@ function PlaceholderCard({
         backdropFilter: "blur(8px)",
       }}
     >
-      <span className="text-3xl" aria-hidden="true">{icon}</span>
+      <span className="text-3xl" aria-hidden="true"></span>
       <h3 className="font-serif text-xl" style={{ color: "var(--color-ice)" }}>
         {title}
       </h3>
@@ -214,12 +214,12 @@ export function LandingPage() {
 
           <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
             <PlaceholderCard
-              icon="💬"
+              // icon="💬"
               title="Testimonials"
               description="Stories of lives changed at previous camp meetings."
             />
             <PlaceholderCard
-              icon="💝"
+              // icon="💝"
               title="Donate"
               description="Support the camp meeting ministry with a donation."
             />

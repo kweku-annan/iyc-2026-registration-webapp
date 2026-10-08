@@ -180,7 +180,7 @@ export function TestimonialsCarousel() {
               background: "rgba(216,245,249,0.06)",
             }}
           >
-            <span aria-hidden="true">💬</span>
+            {/*<span aria-hidden="true">💬</span>*/}
             Share your testimony
           </Link>
         </div>
