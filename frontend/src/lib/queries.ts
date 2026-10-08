@@ -320,7 +320,7 @@ export function useAdminTestimonials() {
 
 export function useUpdateTestimonial(csrfToken: string) {
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: { status?: string; featured?: boolean } }) =>
+    mutationFn: ({ id, payload }: { id: number; payload: { body?: string; status?: string; featured?: boolean } }) =>
       fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:8000"}/admin/testimonials/${id}`, {
         method: "PATCH",
         credentials: "include",

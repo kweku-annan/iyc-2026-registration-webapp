@@ -9,7 +9,7 @@ import { useSubmitTestimony } from "../lib/queries";
 import { HttpError } from "../lib/api";
 
 const testimonySchema = z.object({
-  body: z.string().min(10, "Please share a bit more detail.").max(2000, "Testimony is too long."),
+  body: z.string().min(10, "Please share a bit more detail.").max(20000, "Testimony is too long."),
   privacy_mode: z.enum(["public", "anonymous_name_private", "anonymous_no_name"]),
   display_name: z.string().optional(),
   private_name: z.string().optional(),
@@ -79,7 +79,7 @@ export function TestimonyPage() {
             className="font-serif text-4xl sm:text-5xl mb-4"
             style={{ color: "var(--color-ice)" }}
           >
-            Share Your Story
+            Glory Hallelujah!
           </h1>
           <p
             className="font-sans text-sm mb-10 leading-relaxed"
@@ -87,6 +87,7 @@ export function TestimonyPage() {
           >
             We would love to hear how God moved in your life at IYC camp meetings. Your testimony encourages others.
           </p>
+
 
           {isSuccess ? (
             <div

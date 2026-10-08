@@ -8,8 +8,10 @@ export function AdminTestimonialsPage() {
   const updateMutation = useUpdateTestimonial(csrfToken!);
 
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editBody, setEditBody] = useState("");
 
-  const handleUpdate = async (id: number, payload: { status?: string; featured?: boolean }) => {
+  const handleUpdate = async (id: number, payload: { body?: string; status?: string; featured?: boolean }) => {
     setProcessingId(id);
     try {
       await updateMutation.mutateAsync({ id, payload });
@@ -18,6 +20,9 @@ export function AdminTestimonialsPage() {
       console.error(err);
     } finally {
       setProcessingId(null);
+      if (payload.body !== undefined) {
+        setEditingId(null);
+      }
     }
   };
 
@@ -59,7 +64,34 @@ export function AdminTestimonialsPage() {
                     {new Date(t.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-5 py-4 align-top">
-                    <p className="line-clamp-3 text-sm leading-relaxed" title={t.body}>{t.body}</p>
+                    {editingId === t.id ? (
+                      <div className="flex flex-col gap-2">
+                        <textarea
+                          value={editBody}
+                          onChange={(e) => setEditBody(e.target.value)}
+                          className="w-full bg-black/20 border border-white/20 rounded p-2 text-sm text-white focus:outline-none focus:border-white/40"
+                          rows={4}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleUpdate(t.id, { body: editBody })}
+                            disabled={processingId === t.id}
+                            className="px-2 py-1 rounded text-xs font-medium bg-green-500/20 text-green-300 hover:bg-green-500/30 disabled:opacity-50"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            disabled={processingId === t.id}
+                            className="px-2 py-1 rounded text-xs font-medium bg-white/10 hover:bg-white/20 text-white disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="line-clamp-3 text-sm leading-relaxed" title={t.body}>{t.body}</p>
+                    )}
                   </td>
                   <td className="px-5 py-4 align-top">
                     <div className="flex flex-col gap-1">
@@ -123,6 +155,18 @@ export function AdminTestimonialsPage() {
                           }`}
                         >
                           {t.featured ? "Unfeature" : "Feature"}
+                        </button>
+                      )}
+                      {editingId !== t.id && (
+                        <button
+                          onClick={() => {
+                            setEditingId(t.id);
+                            setEditBody(t.body);
+                          }}
+                          disabled={processingId === t.id}
+                          className="px-3 py-1.5 rounded text-xs font-medium bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
+                        >
+                          Edit
                         </button>
                       )}
                     </div>

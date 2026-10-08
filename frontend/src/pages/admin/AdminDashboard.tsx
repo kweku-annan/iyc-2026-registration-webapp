@@ -19,6 +19,7 @@ const SIDEBAR_W = 220;
 const NAV_LINKS = [
   { to: "/admin/dashboard", label: "Dashboard", icon: "📊" },
   { to: "/admin/registrations", label: "Registrants", icon: "🧑‍🤝‍🧑" },
+  { to: "/admin/testimonials", label: "Testimonials", icon: "💬" },
   { to: "/admin/settings", label: "Settings", icon: "⚙️" },
 ];
 

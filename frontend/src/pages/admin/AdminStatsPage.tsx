@@ -5,6 +5,7 @@
  * pending testimonials. Auto-refreshes every 30 s.
  */
 
+import { Link } from "react-router-dom";
 import { useAdminStats } from "../../lib/queries";
 
 interface StatCardProps {
@@ -132,13 +133,15 @@ export function AdminStatsPage() {
           loading={isLoading}
           accent="var(--color-cream)"
         />
-        <StatCard
-          icon="💬"
-          label="Pending Testimonials"
-          value={data?.pending_testimonials}
-          loading={isLoading}
-          accent="#fbbf24"
-        />
+        <Link to="/admin/testimonials" style={{ textDecoration: "none" }}>
+          <StatCard
+            icon="💬"
+            label="Pending Testimonials"
+            value={data?.pending_testimonials}
+            loading={isLoading}
+            accent="#fbbf24"
+          />
+        </Link>
       </div>
 
       {/* Quick links */}
@@ -153,11 +156,12 @@ export function AdminStatsPage() {
         {[
           { href: "/admin/registrations", icon: "🔍", label: "Search registrants" },
           { href: "/admin/registrations", icon: "📥", label: "Export CSV" },
+          { href: "/admin/testimonials", icon: "💬", label: "Review testimonials" },
           { href: "/admin/settings", icon: "🔒", label: "Open / close registration" },
         ].map((item) => (
-          <a
+          <Link
             key={item.label}
-            href={item.href}
+            to={item.href}
             style={{
               display: "flex",
               alignItems: "center",
@@ -184,7 +188,7 @@ export function AdminStatsPage() {
           >
             <span aria-hidden="true" style={{ fontSize: "1.25rem" }}>{item.icon}</span>
             {item.label}
-          </a>
+          </Link>
         ))}
       </div>
     </div>

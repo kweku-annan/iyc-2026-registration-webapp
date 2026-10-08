@@ -11,23 +11,31 @@
  *  - Gracefully hides if no testimonials are available
  */
 
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCarousel } from "../lib/useCarousel";
 import { useTestimonialsFeatured, type TestimonialPublic } from "../lib/queries";
-function QuoteCard({ item }: { item: TestimonialPublic }) {
+
+function QuoteCard({ item, onClick }: { item: TestimonialPublic; onClick: () => void }) {
+  const isLong = item.body.length > 200;
   return (
     <div
       className="shrink-0 px-3"
       style={{ flex: "0 0 min(100%, 400px)" }}
     >
       <div
-        className="h-full flex flex-col gap-5 rounded-2xl p-6 sm:p-7"
+        onClick={onClick}
+        className={`h-full flex flex-col gap-5 rounded-2xl p-6 sm:p-7 transition-all duration-300 ${
+          isLong ? "cursor-pointer hover:-translate-y-1 hover:shadow-lg hover:bg-white/[0.08]" : ""
+        }`}
         style={{
           background: "rgba(255,255,255,0.06)",
           border: "1px solid rgba(103,163,177,0.2)",
           backdropFilter: "blur(12px)",
           minHeight: 220,
         }}
+        role={isLong ? "button" : undefined}
+        tabIndex={isLong ? 0 : undefined}
       >
         {/* Quote mark */}
         <span
@@ -40,11 +48,17 @@ function QuoteCard({ item }: { item: TestimonialPublic }) {
 
         {/* Body */}
         <p
-          className="font-sans text-sm sm:text-base leading-relaxed flex-1"
+          className={`font-sans text-sm sm:text-base leading-relaxed flex-1 ${isLong ? 'line-clamp-5' : ''}`}
           style={{ color: "rgba(255,255,255,0.8)" }}
         >
           {item.body}
         </p>
+        
+        {isLong && (
+          <div className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-highlight)" }}>
+            Read more
+          </div>
+        )}
 
         {/* Attribution */}
         <div className="flex items-center gap-3">
@@ -69,6 +83,7 @@ function QuoteCard({ item }: { item: TestimonialPublic }) {
 export function TestimonialsCarousel() {
   const { data: items = [], isLoading } = useTestimonialsFeatured();
   const { emblaRef, selectedIndex, scrollTo } = useCarousel({ delay: 4000 });
+  const [selectedItem, setSelectedItem] = useState<TestimonialPublic | null>(null);
 
   if (isLoading || items.length === 0) return null;
 
@@ -113,7 +128,14 @@ export function TestimonialsCarousel() {
                 className="shrink-0"
                 style={{ flex: "0 0 min(100%, 420px)", paddingInline: "0.75rem" }}
               >
-                <QuoteCard item={item} />
+                <QuoteCard 
+                  item={item} 
+                  onClick={() => {
+                    if (item.body.length > 200) {
+                      setSelectedItem(item);
+                    }
+                  }} 
+                />
               </div>
             ))}
           </div>
@@ -163,6 +185,77 @@ export function TestimonialsCarousel() {
           </Link>
         </div>
       </div>
+
+      {/* Modal */}
+      {selectedItem && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+        >
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
+            onClick={() => setSelectedItem(null)}
+            aria-hidden="true"
+          />
+          
+          {/* Modal Content */}
+          <div 
+            className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl"
+            style={{ 
+              background: "var(--color-dark)",
+              border: "1px solid rgba(103,163,177,0.3)",
+              animation: "fadeInUp 0.3s ease-out forwards",
+            }}
+          >
+            <div className="flex justify-between items-center p-6 border-b border-white/10 shrink-0">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-sans font-bold text-base shrink-0"
+                  style={{ background: "rgba(103,163,177,0.25)", color: "var(--color-ice)" }}
+                  aria-hidden="true"
+                >
+                  {selectedItem.computed_name.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-sans font-medium text-base" style={{ color: "var(--color-ice)" }}>
+                    {selectedItem.computed_name}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedItem(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white/50 hover:text-white"
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 sm:p-8 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
+              <span
+                className="font-serif block mb-4"
+                style={{ fontSize: "4rem", lineHeight: 0.5, color: "rgba(216,245,249,0.2)" }}
+                aria-hidden="true"
+              >
+                "
+              </span>
+              <p 
+                className="font-sans text-base sm:text-lg leading-relaxed whitespace-pre-wrap"
+                style={{ color: "rgba(255,255,255,0.9)" }}
+              >
+                {selectedItem.body}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
     </section>
   );
 }

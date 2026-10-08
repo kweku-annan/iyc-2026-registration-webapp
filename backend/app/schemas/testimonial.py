@@ -6,7 +6,7 @@ PrivacyMode = Literal["public", "anonymous_name_private", "anonymous_no_name"]
 TestimonialStatus = Literal["pending", "approved", "rejected"]
 
 class TestimonialCreate(BaseModel):
-    body: str = Field(..., min_length=10, max_length=2000)
+    body: str = Field(..., min_length=10, max_length=20000)
     privacy_mode: PrivacyMode
     display_name: Optional[str] = Field(None, max_length=100)
     private_name: Optional[str] = Field(None, max_length=100)
@@ -79,5 +79,6 @@ class TestimonialAdmin(BaseModel):
 
 class TestimonialUpdate(BaseModel):
     """Schema for admin updates."""
+    body: Optional[str] = None
     status: Optional[TestimonialStatus] = None
     featured: Optional[bool] = None

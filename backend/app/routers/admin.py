@@ -211,6 +211,8 @@ def update_testimonial(
     if not testimonial:
         raise AppError("Testimonial not found", code="not_found", status_code=404)
 
+    if payload.body is not None:
+        testimonial.body = payload.body
     if payload.status is not None:
         testimonial.status = payload.status
     if payload.featured is not None:
