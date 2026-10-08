@@ -24,6 +24,7 @@ import {
   useCreateRegistration,
 } from "../lib/queries";
 import { HttpError } from "../lib/api";
+import { Check, CloudRain, CheckCircle, User as UserIcon } from "lucide-react";
 
 // ── Step indicator ──────────────────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ function StepIndicator({ current }: { current: Step }) {
                 }}
                 aria-current={active ? "step" : undefined}
               >
-                {done ? "✓" : i + 1}
+                {done ? <Check size={16} /> : i + 1}
               </div>
               <span
                 className="text-[10px] font-sans hidden sm:block"
@@ -135,7 +136,7 @@ function RegistrationClosed() {
     <Layout>
       <div className="min-h-[80dvh] flex items-center justify-center px-5">
         <div className="text-center max-w-md flex flex-col items-center gap-5">
-          <span className="text-5xl" aria-hidden="true">🌧️</span>
+          <span className="text-5xl" aria-hidden="true"><CloudRain size={48} /></span>
           <h1 className="font-serif text-3xl" style={{ color: "var(--color-ice)" }}>
             Registration is Closed
           </h1>
@@ -443,7 +444,7 @@ export function RegisterPage() {
                      }}
                      aria-hidden="true"
                   >
-                    ✓
+                    <Check size={32} />
                   </div>
 
                   <div className="flex flex-col gap-4">
@@ -739,7 +740,11 @@ export function RegisterPage() {
                           className="sr-only"
                           {...register("attended_before")}
                         />
-                        {val === "yes" ? "✅ Yes" : "🙋 No, first time"}
+                        {val === "yes" ? (
+                          <span className="flex items-center gap-1.5"><CheckCircle size={16} /> Yes</span>
+                        ) : (
+                          <span className="flex items-center gap-1.5"><UserIcon size={16} /> No, first time</span>
+                        )}
                       </label>
                     );
                   })}

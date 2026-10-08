@@ -9,6 +9,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "../components";
+import { PartyPopper } from "lucide-react";
 
 export function RegisterSuccessPage() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export function RegisterSuccessPage() {
     <Layout>
       <div className="min-h-[80dvh] flex items-center justify-center px-5">
         <div className="text-center max-w-sm flex flex-col items-center gap-5">
-          <span className="text-5xl" aria-hidden="true">🎉</span>
+          <span className="text-5xl" aria-hidden="true"><PartyPopper size={48} /></span>
           <h1 className="font-serif text-3xl" style={{ color: "var(--color-ice)" }}>
             You're Registered!
           </h1>

@@ -17,6 +17,7 @@ import {
   useRef,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { X } from "lucide-react";
 import type { GalleryItem } from "../lib/gallery";
 
 interface LightboxProps {
@@ -130,7 +131,7 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
           backdropFilter: "blur(8px)",
         }}
       >
-        ✕
+        <X size={20} />
       </button>
 
       {/* Counter */}

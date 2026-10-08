@@ -5,6 +5,7 @@
 import { Link } from "react-router-dom";
 import { useGallery } from "../lib/gallery";
 import { GalleryGrid } from "../components/GalleryGrid";
+import { Image } from "lucide-react";
 
 const PREVIEW_COUNT = 6;
 
@@ -92,7 +93,7 @@ export function GallerySection() {
                 background: "rgba(216,245,249,0.06)",
               }}
             >
-              🖼️ View all photos
+              <Image size={16} /> View all photos
             </Link>
           </div>
         )}

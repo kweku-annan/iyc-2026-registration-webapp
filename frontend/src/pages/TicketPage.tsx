@@ -13,6 +13,7 @@ import { useParams, Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { Layout } from "../components";
 import { useTicket } from "../lib/queries";
+import { Ticket, MessageSquare } from "lucide-react";
 
 /** Format an 8-char code as XXXX-XXXX */
 function formatTicketCode(raw: string): string {
@@ -56,7 +57,7 @@ export function TicketPage() {
               border: "1px solid rgba(239,68,68,0.3)",
             }}
           >
-            <span className="text-5xl" aria-hidden="true">🎫</span>
+            <span className="text-5xl" aria-hidden="true"><Ticket size={48} /></span>
             <h1 className="font-serif text-2xl" style={{ color: "var(--color-ice)" }}>
               Ticket Not Found
             </h1>
@@ -218,7 +219,7 @@ export function TicketPage() {
               background: "rgba(228,215,196,0.06)",
             }}
           >
-            <span aria-hidden="true">💬</span>
+            <span aria-hidden="true"><MessageSquare size={16} /></span>
             Share your past IYC experience
           </Link>
         </div>

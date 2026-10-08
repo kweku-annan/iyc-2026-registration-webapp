@@ -12,6 +12,7 @@ import { useAdminAuth } from "../../lib/adminAuth";
 import { useRegistrationStatus, usePatchSettings } from "../../lib/queries";
 import { Button, useToast } from "../../components";
 import { HttpError } from "../../lib/api";
+import { Check, X } from "lucide-react";
 
 export function AdminSettingsPage() {
   const { csrfToken } = useAdminAuth();
@@ -171,7 +172,7 @@ export function AdminSettingsPage() {
                 }}
                 aria-hidden="true"
               >
-                {isOpen ? "✓" : "✕"}
+                {isOpen ? <Check size={20} color="var(--color-ice)" /> : <X size={20} color="rgba(255,255,255,0.7)" />}
               </span>
             </button>
           </div>

@@ -18,6 +18,7 @@ import {
 } from "../../lib/queries";
 import { Button, useToast } from "../../components";
 import { HttpError } from "../../lib/api";
+import { Download, FileSpreadsheet, Check, Trash2 } from "lucide-react";
 
 const LIMIT = 50;
 
@@ -247,16 +248,18 @@ export function AdminRegistrationsPage() {
             variant="secondary"
             size="sm"
             onClick={handleExport}
+            className="flex items-center gap-2"
           >
-            📥 Export CSV
+            <Download size={16} /> Export CSV
           </Button>
           <Button
             id="export-excel-btn"
             variant="secondary"
             size="sm"
             onClick={handleExportExcel}
+            className="flex items-center gap-2"
           >
-            📊 Export Excel
+            <FileSpreadsheet size={16} /> Export Excel
           </Button>
         </div>
       </div>
@@ -355,7 +358,7 @@ export function AdminRegistrationsPage() {
                   <td style={TD}>{formatDate(reg.registered_at)}</td>
                   <td style={TD}>
                     {reg.checked_in_at ? (
-                      <span style={{ color: "#86efac" }}>✓ {formatDate(reg.checked_in_at)}</span>
+                      <span style={{ color: "#86efac", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}><Check size={14} /> {formatDate(reg.checked_in_at)}</span>
                     ) : (
                       <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>
                     )}
@@ -378,11 +381,14 @@ export function AdminRegistrationsPage() {
                           minHeight: 32,
                           transition: "all 0.15s",
                           whiteSpace: "nowrap",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.25rem"
                         }}
                         onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.12)"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                       >
-                        🗑 Anonymize
+                        <Trash2 size={14} /> Anonymize
                       </button>
                     )}
                   </td>

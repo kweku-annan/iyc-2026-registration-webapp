@@ -14,6 +14,7 @@
 
 import { Link } from "react-router-dom";
 import { useCarousel } from "../lib/useCarousel";
+import { Calendar } from "lucide-react";
 
 interface HeroSlide {
   id: string;
@@ -179,7 +180,7 @@ export function HeroCarousel({ isOpen }: HeroCarouselProps) {
                     color: "var(--color-ice)",
                   }}
                 >
-                  <span aria-hidden="true">📅</span>
+                  <span aria-hidden="true"><Calendar size={16} /></span>
                   <span>23 – 26 December 2026</span>
                 </div>
 

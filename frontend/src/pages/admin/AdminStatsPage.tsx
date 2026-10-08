@@ -7,9 +7,10 @@
 
 import { Link } from "react-router-dom";
 import { useAdminStats } from "../../lib/queries";
+import { Users, CheckCircle, PersonStanding, MessageSquare, Search, Download, Lock } from "lucide-react";
 
 interface StatCardProps {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: number | undefined;
   loading: boolean;
@@ -113,21 +114,21 @@ export function AdminStatsPage() {
         }}
       >
         <StatCard
-          icon="🧑‍🤝‍🧑"
+          icon={<Users size={28} />}
           label="Total Registered"
           value={data?.total_registered}
           loading={isLoading}
           accent="var(--color-ice)"
         />
         <StatCard
-          icon="✅"
+          icon={<CheckCircle size={28} />}
           label="Checked In"
           value={data?.checked_in}
           loading={isLoading}
           accent="#86efac"
         />
         <StatCard
-          icon="🚶"
+          icon={<PersonStanding size={28} />}
           label="Walk-ins"
           value={data?.walk_ins}
           loading={isLoading}
@@ -135,7 +136,7 @@ export function AdminStatsPage() {
         />
         <Link to="/admin/testimonials" style={{ textDecoration: "none" }}>
           <StatCard
-            icon="💬"
+            icon={<MessageSquare size={28} />}
             label="Pending Testimonials"
             value={data?.pending_testimonials}
             loading={isLoading}
@@ -154,10 +155,10 @@ export function AdminStatsPage() {
         }}
       >
         {[
-          { href: "/admin/registrations", icon: "🔍", label: "Search registrants" },
-          { href: "/admin/registrations", icon: "📥", label: "Export CSV" },
-          { href: "/admin/testimonials", icon: "💬", label: "Review testimonials" },
-          { href: "/admin/settings", icon: "🔒", label: "Open / close registration" },
+          { href: "/admin/registrations", icon: <Search size={20} />, label: "Search registrants" },
+          { href: "/admin/registrations", icon: <Download size={20} />, label: "Export CSV" },
+          { href: "/admin/testimonials", icon: <MessageSquare size={20} />, label: "Review testimonials" },
+          { href: "/admin/settings", icon: <Lock size={20} />, label: "Open / close registration" },
         ].map((item) => (
           <Link
             key={item.label}

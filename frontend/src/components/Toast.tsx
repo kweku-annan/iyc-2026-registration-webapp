@@ -17,6 +17,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { Check, X, Info } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -60,10 +61,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [dismiss],
   );
 
-  const ICONS: Record<ToastVariant, string> = {
-    success: "✓",
-    error: "✕",
-    info: "ℹ",
+  const ICONS: Record<ToastVariant, React.ReactNode> = {
+    success: <Check size={14} />,
+    error: <X size={14} />,
+    info: <Info size={14} />,
   };
 
   const COLORS: Record<ToastVariant, string> = {
@@ -106,7 +107,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
               aria-label="Dismiss notification"
             >
-              ✕
+              <X size={16} />
             </button>
           </div>
         ))}

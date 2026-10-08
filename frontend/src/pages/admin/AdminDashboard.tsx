@@ -12,15 +12,17 @@ import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { AdminAuthProvider, useAdminAuth } from "../../lib/adminAuth";
 
+import { LayoutDashboard, Users, MessageSquare, Settings, LogOut } from "lucide-react";
+
 const DARK = "#0a1a20";
 const SIDEBAR_BG = "#0d2129";
 const SIDEBAR_W = 220;
 
 const NAV_LINKS = [
-  { to: "/admin/dashboard", label: "Dashboard", icon: "📊" },
-  { to: "/admin/registrations", label: "Registrants", icon: "🧑‍🤝‍🧑" },
-  { to: "/admin/testimonials", label: "Testimonials", icon: "💬" },
-  { to: "/admin/settings", label: "Settings", icon: "⚙️" },
+  { to: "/admin/dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
+  { to: "/admin/registrations", label: "Registrants", icon: <Users size={18} /> },
+  { to: "/admin/testimonials", label: "Testimonials", icon: <MessageSquare size={18} /> },
+  { to: "/admin/settings", label: "Settings", icon: <Settings size={18} /> },
 ];
 
 function Sidebar({ onClose }: { onClose?: () => void }) {
@@ -172,7 +174,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
             e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
           }}
         >
-          <span aria-hidden="true">→</span> Sign Out
+          <span aria-hidden="true"><LogOut size={16} /></span> Sign Out
         </button>
       </div>
     </aside>

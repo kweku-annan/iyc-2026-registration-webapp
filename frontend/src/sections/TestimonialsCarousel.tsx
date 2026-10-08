@@ -15,6 +15,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCarousel } from "../lib/useCarousel";
 import { useTestimonialsFeatured, type TestimonialPublic } from "../lib/queries";
+import { X } from "lucide-react";
 
 function QuoteCard({ item, onClick }: { item: TestimonialPublic; onClick: () => void }) {
   const isLong = item.body.length > 200;
@@ -227,7 +228,7 @@ export function TestimonialsCarousel() {
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white/50 hover:text-white"
                 aria-label="Close modal"
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
             
