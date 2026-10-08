@@ -51,7 +51,15 @@ def test_lookup_registration(client: TestClient, db: Session):
     client.cookies.set("session_token", headers["cookie"].split("=")[1])
     
     reg = Registration(
-        full_name="John Doe",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164="+233201234567",
         church="Grace",
         attended_before=False,
@@ -71,7 +79,15 @@ def test_search_registration(client: TestClient, db: Session):
     client.cookies.set("session_token", headers["cookie"].split("=")[1])
 
     reg = Registration(
-        full_name="John Doe",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164="+233201234567",
         church="Grace",
         attended_before=False,
@@ -92,7 +108,15 @@ def test_confirm_checkin(client: TestClient, db: Session):
     client.cookies.set("session_token", headers["cookie"].split("=")[1])
     
     reg = Registration(
-        full_name="John Doe",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164="+233201234567",
         church="Grace",
         attended_before=False,
@@ -117,7 +141,14 @@ def test_walk_in(client: TestClient, db: Session):
     client.cookies.set("session_token", headers["cookie"].split("=")[1])
 
     payload = {
-        "full_name": "Walkin User",
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
         "phone": "0540001111",
         "church": "ICGC",
         "attended_before": True
@@ -135,7 +166,14 @@ def test_walk_in_duplicate_phone(client: TestClient, db: Session):
     client.cookies.set("session_token", headers["cookie"].split("=")[1])
 
     payload = {
-        "full_name": "Walkin User",
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
         "phone": "0540001111", # same local phone
         "church": "ICGC",
         "attended_before": True

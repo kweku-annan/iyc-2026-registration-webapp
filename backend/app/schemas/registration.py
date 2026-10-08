@@ -19,6 +19,8 @@ class RegistrationCreate(BaseModel):
     profession: str = Field(..., min_length=2, max_length=150, description="Profession of registrant")
     student_status: bool = Field(..., description="Whether the registrant is a student")
     school_name: str | None = Field(None, min_length=2, max_length=150, description="Name of the school if student_status is True")
+    location: str = Field(..., min_length=2, max_length=150, description="Location or City of the registrant")
+    accommodation_preference: str = Field(..., description="Camp Site Accommodation, Hotel, or Hostel")
     invitation_by_someone: bool = Field(..., description="Whether the registrant was invited by someone")
     invitation_by_who: str | None = Field(None, min_length=2, max_length=150, description="Name of the person who invited the registrant if invitation_by_someone is True")
     phone: str = Field(..., description="Phone number")
@@ -43,6 +45,8 @@ class TicketResponse(BaseModel):
     profession: str
     student_status: bool
     school_name: str | None
+    location: str
+    accommodation_preference: str
     invitation_by_someone: bool
     invitation_by_who: str | None
     church: str

@@ -152,7 +152,15 @@ def test_delete_admin_user_with_history(client: TestClient, db: Session):
     user_id = create_response.json()["id"]
 
     reg = Registration(
-        full_name="Checkin Tester",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164="+233555555555",
         church="Test Church",
         attended_before=False,

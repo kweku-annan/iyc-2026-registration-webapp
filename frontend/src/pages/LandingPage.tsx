@@ -133,6 +133,48 @@ export function LandingPage() {
       <TestimonialsCarousel />
 
       {/* ══════════════════════════════════════
+          ENGAGE & SHARE
+      ══════════════════════════════════════ */}
+      <section className="py-16 px-5" style={{ background: "rgba(103,163,177,0.03)" }}>
+        <div className="max-w-4xl mx-auto text-center flex flex-col items-center gap-8">
+          <div>
+            <h2 className="font-serif text-3xl sm:text-4xl mb-3" style={{ color: "var(--color-ice)" }}>
+              Engage & Share
+            </h2>
+            <p className="font-sans text-sm sm:text-base max-w-lg mx-auto" style={{ color: "rgba(255,255,255,0.6)" }}>
+              Tell the world about IYC Camp Meeting 2026! Generate your personalized flyer or share your testimony of what God has done.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-lg">
+            <a
+              href="https://getdp.co/wD7"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 inline-flex items-center justify-center rounded-full font-sans font-semibold px-6 py-3 transition-all duration-200 hover:scale-[1.03]"
+              style={{
+                background: "var(--color-ice)",
+                color: "var(--color-primary)",
+                boxShadow: "0 0 30px rgba(216,245,249,0.25)",
+              }}
+            >
+              Personalized IYC Flyer
+            </a>
+            <Link
+              to="/testimony"
+              className="flex-1 inline-flex items-center justify-center rounded-full font-sans font-semibold px-6 py-3 transition-all duration-200 hover:scale-[1.03]"
+              style={{
+                border: "1px solid rgba(103,163,177,0.5)",
+                color: "var(--color-ice)",
+                background: "transparent",
+              }}
+            >
+              Share Your Testimony
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════
           7. PARTNERS (carousel)
       ══════════════════════════════════════ */}
       <PartnersCarousel />

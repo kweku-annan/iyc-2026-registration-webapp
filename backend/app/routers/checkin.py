@@ -118,6 +118,8 @@ def walk_in_registration(
         profession=payload.profession,
         student_status=payload.student_status,
         school_name=payload.school_name,
+        location=payload.location,
+        accommodation_preference=payload.accommodation_preference,
         invitation_by_someone=payload.invitation_by_someone,
         invitation_by_who=payload.invitation_by_who,
         phone_e164=e164_phone,

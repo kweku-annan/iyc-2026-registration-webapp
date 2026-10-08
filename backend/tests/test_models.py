@@ -7,7 +7,7 @@ tests are fully isolated.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import date, UTC, datetime
 
 import pytest
 from sqlalchemy import create_engine, event
@@ -54,7 +54,15 @@ def make_registration(
     **kwargs,
 ) -> Registration:
     return Registration(
-        full_name="Kwame Mensah",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164=phone,
         church="Grace Chapel",
         attended_before=False,

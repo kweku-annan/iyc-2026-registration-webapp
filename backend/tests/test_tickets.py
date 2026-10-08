@@ -1,6 +1,7 @@
 """Tests for app/services/tickets.py — ticket code generation and normalization."""
 
 from __future__ import annotations
+from datetime import date
 
 import pytest
 from sqlalchemy import create_engine, event
@@ -94,7 +95,15 @@ def test_generate_unique_ticket_code_collision_retry(db: Session, monkeypatch):
 
     # Pre-seed DB
     reg = Registration(
-        full_name="Test",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164="+233241234567",
         church="Test Church",
         attended_before=False,
@@ -119,7 +128,15 @@ def test_generate_unique_ticket_code_collision_retry(db: Session, monkeypatch):
 def test_generate_unique_ticket_code_exhausts_retries(db: Session, monkeypatch):
     # Pre-seed DB
     reg = Registration(
-        full_name="Test",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164="+233241234567",
         church="Test Church",
         attended_before=False,

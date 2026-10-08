@@ -1,6 +1,6 @@
 """Tests for registration endpoints."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import date, UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -90,7 +90,14 @@ def test_create_registration_success(client: TestClient, db: Session):
     token = generate_otp_token("+233241234567")
 
     payload = {
-        "full_name": "John Doe",
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
         "phone": "0241234567",
         "church": "Grace Chapel",
         "attended_before": False,
@@ -118,7 +125,14 @@ def test_create_registration_duplicate(client: TestClient, db: Session):
     # First registration
     token = generate_otp_token("+233241234567")
     client.post("/registrations", json={
-        "full_name": "John Doe",
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
         "phone": "0241234567",
         "church": "Grace",
         "attended_before": False,
@@ -131,7 +145,14 @@ def test_create_registration_duplicate(client: TestClient, db: Session):
 
     # Duplicate registration
     res = client.post("/registrations", json={
-        "full_name": "John Doe 2",
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
         "phone": "0241234567",
         "church": "Grace",
         "attended_before": False,
@@ -154,7 +175,14 @@ def test_create_registration_duplicate(client: TestClient, db: Session):
 
 def test_create_registration_honeypot(client: TestClient):
     payload = {
-        "full_name": "Bot",
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
         "phone": "0241234567",
         "church": "Bot",
         "attended_before": False,
@@ -167,7 +195,14 @@ def test_create_registration_honeypot(client: TestClient):
 
 def test_create_registration_otp_required(client: TestClient):
     payload = {
-        "full_name": "John",
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
         "phone": "0241234567",
         "church": "Church",
         "attended_before": False,
@@ -181,7 +216,14 @@ def test_create_registration_otp_required(client: TestClient):
 def test_get_ticket(client: TestClient, db: Session):
     token = generate_otp_token("+233241234567")
     res = client.post("/registrations", json={
-        "full_name": "Jane Doe",
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
         "phone": "0241234567",
         "church": "Grace",
         "attended_before": False,

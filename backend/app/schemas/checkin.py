@@ -14,6 +14,8 @@ class CheckinLookupResponse(BaseModel):
     profession: str
     student_status: bool
     school_name: Optional[str]
+    location: str
+    accommodation_preference: str
     invitation_by_someone: bool
     invitation_by_who: Optional[str]
     attended_before: bool
@@ -32,6 +34,8 @@ class WalkInRegistrationCreate(BaseModel):
     profession: str
     student_status: bool
     school_name: Optional[str] = None
+    location: str
+    accommodation_preference: str
     invitation_by_someone: bool
     invitation_by_who: Optional[str] = None
     phone: str  # Frontend sends local or intl, backend normalizes

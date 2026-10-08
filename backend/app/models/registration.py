@@ -22,6 +22,8 @@ class Registration(Base):
     profession: Mapped[str] = mapped_column(String(100), nullable=False)
     student_status: Mapped[bool] = mapped_column(Boolean, nullable=False)
     school_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    location: Mapped[str] = mapped_column(String(150), nullable=False)
+    accommodation_preference: Mapped[str] = mapped_column(String(50), nullable=False)
     invitation_by_someone: Mapped[bool] = mapped_column(Boolean, nullable=False)
     invitation_by_who: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # E.164 format enforced by the phone service before insert.

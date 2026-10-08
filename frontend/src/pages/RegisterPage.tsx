@@ -164,6 +164,8 @@ const detailsSchema = z.object({
   profession: z.string().min(2, "Profession must be at least 2 characters").max(150),
   student_status: z.enum(["yes", "no"], { required_error: "Please select an option" }),
   school_name: z.string().max(150).optional(),
+  location: z.string().min(2, "Location is required").max(150),
+  accommodation_preference: z.enum(["camp_site", "hotel", "hostel"], { required_error: "Please select an accommodation preference" }),
   invitation_by_someone: z.enum(["yes", "no"], { required_error: "Please select an option" }),
   invitation_by_who: z.string().max(150).optional(),
   church: z
@@ -202,10 +204,16 @@ export function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<DetailsForm>({
     resolver: zodResolver(detailsSchema),
   });
+
+  const studentStatus = watch("student_status");
+  const invitationBySomeone = watch("invitation_by_someone");
+  const attendedBefore = watch("attended_before");
+  const accommodationPreference = watch("accommodation_preference");
 
   // Start/reset resend cooldown
   function startCooldown(seconds = 60) {
@@ -303,6 +311,8 @@ export function RegisterPage() {
         profession: data.profession,
         student_status: data.student_status === "yes",
         school_name: data.school_name || null,
+        location: data.location,
+        accommodation_preference: data.accommodation_preference,
         invitation_by_someone: data.invitation_by_someone === "yes",
         invitation_by_who: data.invitation_by_who || null,
         phone,
@@ -618,14 +628,47 @@ export function RegisterPage() {
                 <Input id="profession" type="text" placeholder="e.g. Teacher" error={!!errors.profession} {...register("profession")} />
               </FormField>
 
+              <FormField label="Location / City" htmlFor="location" required error={errors.location?.message}>
+                <Input id="location" type="text" placeholder="e.g. Accra" error={!!errors.location} {...register("location")} />
+              </FormField>
+
+              <FormField label="Accommodation Preference" htmlFor="accommodation_preference" required error={errors.accommodation_preference?.message}>
+                <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Limited Accommodation is provided at the camp site. For hotel or hostel reservation, you will be contacted by the Organizers.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {(["camp_site", "hotel", "hostel"] as const).map((val) => {
+                    const isSelected = accommodationPreference === val;
+                    const displayLabel = val === "camp_site" ? "Camp Site" : val === "hotel" ? "Hotel" : "Hostel";
+                    return (
+                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200 text-center" style={{ 
+                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)", 
+                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)", 
+                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)" 
+                      }}>
+                        <input type="radio" id={`accommodation-${val}`} value={val} className="sr-only" {...register("accommodation_preference")} />
+                        {displayLabel}
+                      </label>
+                    );
+                  })}
+                </div>
+              </FormField>
+
               <FormField label="Are you a student?" htmlFor="student-status-yes" required error={errors.student_status?.message}>
                 <div className="flex gap-3">
-                  {(["yes", "no"] as const).map((val) => (
-                    <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium" style={{ border: "1px solid rgba(103,163,177,0.4)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.8)" }}>
-                      <input type="radio" id={`student-status-${val}`} value={val} className="sr-only" {...register("student_status")} />
-                      {val === "yes" ? "Yes" : "No"}
-                    </label>
-                  ))}
+                  {(["yes", "no"] as const).map((val) => {
+                    const isSelected = studentStatus === val;
+                    return (
+                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200" style={{ 
+                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)", 
+                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)", 
+                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)" 
+                      }}>
+                        <input type="radio" id={`student-status-${val}`} value={val} className="sr-only" {...register("student_status")} />
+                        {val === "yes" ? "Yes" : "No"}
+                      </label>
+                    );
+                  })}
                 </div>
               </FormField>
 
@@ -635,12 +678,19 @@ export function RegisterPage() {
 
               <FormField label="Were you invited by someone?" htmlFor="invitation-yes" required error={errors.invitation_by_someone?.message}>
                 <div className="flex gap-3">
-                  {(["yes", "no"] as const).map((val) => (
-                    <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium" style={{ border: "1px solid rgba(103,163,177,0.4)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.8)" }}>
-                      <input type="radio" id={`invitation-${val}`} value={val} className="sr-only" {...register("invitation_by_someone")} />
-                      {val === "yes" ? "Yes" : "No"}
-                    </label>
-                  ))}
+                  {(["yes", "no"] as const).map((val) => {
+                    const isSelected = invitationBySomeone === val;
+                    return (
+                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200" style={{ 
+                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)", 
+                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)", 
+                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)" 
+                      }}>
+                        <input type="radio" id={`invitation-${val}`} value={val} className="sr-only" {...register("invitation_by_someone")} />
+                        {val === "yes" ? "Yes" : "No"}
+                      </label>
+                    );
+                  })}
                 </div>
               </FormField>
 
@@ -670,26 +720,29 @@ export function RegisterPage() {
                 error={errors.attended_before?.message}
               >
                 <div className="flex gap-3">
-                  {(["yes", "no"] as const).map((val) => (
-                    <label
-                      key={val}
-                      className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200"
-                      style={{
-                        border: "1px solid rgba(103,163,177,0.4)",
-                        background: "rgba(255,255,255,0.05)",
-                        color: "rgba(255,255,255,0.8)",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        id={`attended-before-${val}`}
-                        value={val}
-                        className="sr-only"
-                        {...register("attended_before")}
-                      />
-                      {val === "yes" ? "✅ Yes" : "🙋 No, first time"}
-                    </label>
-                  ))}
+                  {(["yes", "no"] as const).map((val) => {
+                    const isSelected = attendedBefore === val;
+                    return (
+                      <label
+                        key={val}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200"
+                        style={{
+                          border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)",
+                          background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)",
+                          color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          id={`attended-before-${val}`}
+                          value={val}
+                          className="sr-only"
+                          {...register("attended_before")}
+                        />
+                        {val === "yes" ? "✅ Yes" : "🙋 No, first time"}
+                      </label>
+                    );
+                  })}
                 </div>
               </FormField>
 

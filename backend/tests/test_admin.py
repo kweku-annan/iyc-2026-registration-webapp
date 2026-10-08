@@ -2,7 +2,7 @@
 
 import csv
 import io
-from datetime import UTC, datetime, timedelta
+from datetime import date, UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -52,7 +52,15 @@ def db() -> Session:
     vol = User(email="vol@test.com", password_hash="123", role="volunteer")
 
     reg1 = Registration(
-        full_name="John Doe",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164="+233241111111",
         church="Grace",
         attended_before=False,
@@ -60,7 +68,15 @@ def db() -> Session:
         ticket_token="token1"
     )
     reg2 = Registration(
-        full_name="Jane Doe",
+        first_name="John",
+        last_name="Doe",
+        date_of_birth=date(1990, 1, 1),
+        age=30,
+        profession="Engineer",
+        student_status=False,
+        location="Test City",
+        accommodation_preference="Hotel",
+        invitation_by_someone=False,
         phone_e164="+233242222222",
         church="Hope",
         attended_before=True,

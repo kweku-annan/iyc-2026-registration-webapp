@@ -6,15 +6,18 @@
  */
 
 const VENUE = {
-  name: "TBA — Venue to be announced",
-  address: "Location details will be shared with registered attendees.",
+  name: "The PrayerCity",
+  // address: "Location details will be shared with registered attendees.",
   // Set to a real Google Maps URL once confirmed, e.g.:
   // mapUrl: "https://maps.google.com/?q=5.6037,−0.1870",
-  mapUrl: null as string | null,
+  mapUrl: "https://maps.app.goo.gl/jfa4YqK7YL5ProCA7",
+  mapEmbedUrl: "https://www.google.com/maps?q=Gomoa+West+District+Assembly&output=embed",
+  address: "Near Gomoa West District Assembly, Apam, Central Region, Ghana",
   notes: [
-    "Accommodation is provided at the camp. Bring personal toiletries and bedding.",
-    "Transport arrangements will be communicated via the WhatsApp broadcast group.",
-    "For special assistance or travel enquiries, see the Contact section below.",
+      "For further information, special assistance, or any other enquiries, please read the FAQs below or contact the organizers.",
+    "Limited Accommodation is available at the PrayerCity. Bring personal toiletries and bedding.",
+      "For Hostel or Hotel accommodation, please contact the organizers.",
+    "Transport arrangements will be communicated.",
   ],
 };
 
@@ -51,44 +54,66 @@ export function VenueSection() {
           }}
         >
           {/* Map placeholder / link */}
+          {/*<div*/}
+          {/*  className="w-full flex items-center justify-center"*/}
+          {/*  style={{*/}
+          {/*    height: 220,*/}
+          {/*    background: "linear-gradient(135deg, rgba(28,110,134,0.6) 0%, rgba(71,140,161,0.4) 100%)",*/}
+          {/*    borderBottom: "1px solid rgba(103,163,177,0.15)",*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  {VENUE.mapUrl ? (*/}
+          {/*    <a*/}
+          {/*      href={VENUE.mapUrl}*/}
+          {/*      target="_blank"*/}
+          {/*      rel="noopener noreferrer"*/}
+          {/*      id="venue-map-link"*/}
+          {/*      className="flex flex-col items-center gap-2 font-sans text-sm font-medium transition-opacity hover:opacity-80"*/}
+          {/*      style={{ color: "var(--color-ice)" }}*/}
+          {/*    >*/}
+          {/*      <span className="text-4xl" aria-hidden="true">📍</span>*/}
+          {/*      View on Google Maps ↗*/}
+          {/*    </a>*/}
+          {/*  ) : (*/}
+          {/*    <div className="flex flex-col items-center gap-3 text-center px-6">*/}
+          {/*      <span className="text-4xl" aria-hidden="true">📍</span>*/}
+          {/*      <p*/}
+          {/*        className="font-serif text-xl"*/}
+          {/*        style={{ color: "var(--color-ice)" }}*/}
+          {/*      >*/}
+          {/*        Venue to be announced*/}
+          {/*      </p>*/}
+          {/*      <p*/}
+          {/*        className="font-sans text-sm"*/}
+          {/*        style={{ color: "rgba(255,255,255,0.5)" }}*/}
+          {/*      >*/}
+          {/*        Map will appear here once the location is confirmed.*/}
+          {/*      </p>*/}
+          {/*    </div>*/}
+          {/*  )}*/}
+          {/*</div>*/}
+
           <div
-            className="w-full flex items-center justify-center"
-            style={{
-              height: 220,
-              background: "linear-gradient(135deg, rgba(28,110,134,0.6) 0%, rgba(71,140,161,0.4) 100%)",
-              borderBottom: "1px solid rgba(103,163,177,0.15)",
-            }}
-          >
-            {VENUE.mapUrl ? (
-              <a
-                href={VENUE.mapUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                id="venue-map-link"
-                className="flex flex-col items-center gap-2 font-sans text-sm font-medium transition-opacity hover:opacity-80"
-                style={{ color: "var(--color-ice)" }}
-              >
-                <span className="text-4xl" aria-hidden="true">📍</span>
-                View on Google Maps ↗
-              </a>
-            ) : (
-              <div className="flex flex-col items-center gap-3 text-center px-6">
-                <span className="text-4xl" aria-hidden="true">📍</span>
-                <p
-                  className="font-serif text-xl"
-                  style={{ color: "var(--color-ice)" }}
-                >
-                  Venue to be announced
-                </p>
-                <p
-                  className="font-sans text-sm"
-                  style={{ color: "rgba(255,255,255,0.5)" }}
-                >
+              className="w-full overflow-hidden"
+              style={{ height: 320 }}
+            >
+              {VENUE.mapEmbedUrl ? (
+                <iframe
+                  src={VENUE.mapEmbedUrl}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Map showing ${VENUE.name}`}
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center">
                   Map will appear here once the location is confirmed.
-                </p>
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
 
           {/* Details */}
           <div className="p-6 flex flex-col gap-4">

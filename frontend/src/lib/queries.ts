@@ -30,6 +30,8 @@ export interface TicketData {
   profession: string;
   student_status: boolean;
   school_name: string | null;
+  location: string;
+  accommodation_preference: string;
   invitation_by_someone: boolean;
   invitation_by_who: string | null;
   church: string;
@@ -46,6 +48,8 @@ export interface RegistrationPayload {
   profession: string;
   student_status: boolean;
   school_name: string | null;
+  location: string;
+  accommodation_preference: string;
   invitation_by_someone: boolean;
   invitation_by_who: string | null;
   phone: string;
