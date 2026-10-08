@@ -212,12 +212,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-            <PlaceholderCard
-              // icon="💬"
-              title="Testimonials"
-              description="Stories of lives changed at previous camp meetings."
-            />
+          <div className="grid sm:grid-cols-1 gap-4 max-w-sm mx-auto">
             <PlaceholderCard
               // icon="💝"
               title="Donate"
