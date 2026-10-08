@@ -5,6 +5,8 @@ from __future__ import annotations
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+import os
 
 from app.core.config import settings
 from app.core.exceptions import AppError
@@ -24,6 +26,10 @@ app = FastAPI(
     description="Backend for the International Youth For Christ Camp Meeting 2026.",
     version="0.1.0",
 )
+
+# Ensure uploads directory exists and mount it
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # ── Global exception handler ──────────────────────────────────────────────────
 

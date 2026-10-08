@@ -14,6 +14,7 @@
 
 import { useCarousel } from "../lib/useCarousel";
 import { usePartners, type Partner } from "../lib/queries";
+import { getMediaUrl } from "../lib/api";
 
 function PartnerCard({ partner }: { partner: Partner }) {
   const initials = partner.name
@@ -25,32 +26,31 @@ function PartnerCard({ partner }: { partner: Partner }) {
 
   const inner = (
     <div
-      className="flex flex-col items-center gap-3 rounded-2xl px-5 py-6 transition-all duration-200"
+      className="flex flex-col items-center gap-3 rounded-2xl px-5 py-6 transition-all duration-200 w-full"
       style={{
         background: "rgba(255,255,255,0.05)",
         border: "1px solid rgba(103,163,177,0.15)",
-        minHeight: 130,
+        minHeight: 140,
         justifyContent: "center",
       }}
     >
       {partner.logo_url ? (
         <img
-          src={partner.logo_url}
+          src={getMediaUrl(partner.logo_url)}
           alt={partner.name}
           loading="lazy"
-          width={80}
-          height={48}
-          style={{ objectFit: "contain", maxHeight: 48, filter: "brightness(0) invert(1) opacity(0.7)" }}
+          className="w-full h-full"
+          style={{ objectFit: "contain", maxHeight: 90 }}
         />
       ) : (
         <div
           className="flex items-center justify-center rounded-xl font-serif font-semibold"
           style={{
-            width: 60,
-            height: 60,
+            width: 90,
+            height: 90,
             background: "rgba(103,163,177,0.2)",
             color: "var(--color-ice)",
-            fontSize: "1.25rem",
+            fontSize: "2rem",
             letterSpacing: "0.05em",
           }}
           aria-hidden="true"
@@ -92,6 +92,12 @@ export function PartnersCarousel() {
 
   if (!isLoading && partners.length === 0) return null;
 
+  // Duplicate partners to ensure the carousel always loops, even with 1 or 2 partners
+  const displayPartners = [...partners];
+  while (displayPartners.length > 0 && displayPartners.length < 10) {
+    displayPartners.push(...partners);
+  }
+
   return (
     <section
       id="partners"
@@ -129,12 +135,12 @@ export function PartnersCarousel() {
               style={{ touchAction: "pan-y" }}
               aria-live="off"
             >
-              {partners.map((p, i) => (
+              {displayPartners.map((p, i) => (
                 <div
-                  key={p.id}
+                  key={`${p.id}-${i}`}
                   role="group"
                   aria-roledescription="slide"
-                  aria-label={`Partner ${i + 1} of ${partners.length}`}
+                  aria-label={`Partner ${i + 1} of ${displayPartners.length}`}
                   className="shrink-0 px-2"
                   style={{ flex: "0 0 min(100%, 200px)" }}
                 >

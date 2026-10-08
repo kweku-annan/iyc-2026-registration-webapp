@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import csv
 import io
+import os
+import shutil
+import uuid
 from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -444,3 +447,21 @@ def delete_admin_user(
     db.delete(user)
     db.commit()
     return {"detail": "User deleted"}
+
+
+# ── Uploads ───────────────────────────────────────────────────────────────────
+
+@router.post("/upload/image", dependencies=[Depends(verify_csrf)])
+def upload_image(file: UploadFile = File(...)):
+    """Upload an image and return its public URL."""
+    if not file.content_type.startswith("image/"):
+        raise AppError("File must be an image", code="invalid_file_type", status_code=400)
+    
+    ext = file.filename.split(".")[-1] if "." in file.filename else "png"
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join("uploads", filename)
+    
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    return {"url": f"/uploads/{filename}"}

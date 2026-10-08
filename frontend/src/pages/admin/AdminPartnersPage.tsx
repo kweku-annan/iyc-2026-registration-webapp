@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAdminAuth } from "../../lib/adminAuth";
-import { useAdminPartners, useCreatePartner, useUpdatePartner, useDeletePartner, type PartnerCreate } from "../../lib/queries";
+import { useAdminPartners, useCreatePartner, useUpdatePartner, useDeletePartner, useUploadImage, type PartnerCreate } from "../../lib/queries";
+import { getMediaUrl } from "../../lib/api";
 
 export function AdminPartnersPage() {
   const { csrfToken } = useAdminAuth();
@@ -10,8 +11,11 @@ export function AdminPartnersPage() {
   const updateMutation = useUpdatePartner(csrfToken);
   const deleteMutation = useDeletePartner(csrfToken);
   
+  const uploadMutation = useUploadImage(csrfToken!);
+  
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
   
   const [formData, setFormData] = useState<PartnerCreate>({
     name: "",
@@ -24,12 +28,30 @@ export function AdminPartnersPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!editingId && !selectedLogo && !formData.logo_url) {
+      alert("Please upload a logo image.");
+      return;
+    }
+
+    let finalLogoUrl = formData.logo_url;
+
+    if (selectedLogo) {
+      const uploadData = new FormData();
+      uploadData.append("file", selectedLogo);
+      const res = await uploadMutation.mutateAsync(uploadData);
+      finalLogoUrl = res.url;
+    }
+
+    const payload = { ...formData, logo_url: finalLogoUrl };
+
     if (editingId) {
-      await updateMutation.mutateAsync({ id: editingId, payload: formData });
+      await updateMutation.mutateAsync({ id: editingId, payload });
     } else {
-      await createMutation.mutateAsync(formData);
+      await createMutation.mutateAsync(payload);
     }
     setFormData({ name: "", logo_url: "", website_url: "", location: "", sort_order: 0, is_active: true });
+    setSelectedLogo(null);
     setIsAdding(false);
     setEditingId(null);
   };
@@ -44,6 +66,7 @@ export function AdminPartnersPage() {
       is_active: p.is_active,
     });
     setEditingId(p.id);
+    setSelectedLogo(null);
     setIsAdding(true);
   };
 
@@ -84,14 +107,19 @@ export function AdminPartnersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-white/60 mb-1">Logo URL (external link)</label>
+              <label className="block text-sm text-white/60 mb-1">Upload Logo</label>
               <input 
-                required
-                type="text" 
-                value={formData.logo_url} 
-                onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                type="file" 
+                accept="image/*"
+                onChange={(e) => setSelectedLogo(e.target.files?.[0] || null)}
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2"
               />
+              {formData.logo_url && !selectedLogo && (
+                <div className="mt-2 text-xs text-white/50 flex items-center gap-2">
+                  <img src={getMediaUrl(formData.logo_url)} alt="Current logo" className="h-6 w-auto bg-white/10 p-1 rounded" />
+                  <span>Current logo. Upload new to replace.</span>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm text-white/60 mb-1">Website URL (optional)</label>
@@ -133,14 +161,15 @@ export function AdminPartnersPage() {
             </div>
           </div>
           <div className="flex gap-4 mt-6">
-            <button type="submit" className="px-6 py-2 bg-ice text-primary font-bold rounded-lg" disabled={createMutation.isPending || updateMutation.isPending}>
-              {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save"}
+            <button type="submit" className="px-6 py-2 bg-ice text-primary font-bold rounded-lg" disabled={createMutation.isPending || updateMutation.isPending || uploadMutation.isPending}>
+              {createMutation.isPending || updateMutation.isPending || uploadMutation.isPending ? "Saving..." : "Save"}
             </button>
             <button 
               type="button" 
               onClick={() => {
                 setIsAdding(false);
                 setEditingId(null);
+                setSelectedLogo(null);
                 setFormData({ name: "", logo_url: "", website_url: "", location: "", sort_order: 0, is_active: true });
               }}
               className="px-6 py-2 border border-white/30 rounded-lg hover:bg-white/10"
@@ -173,7 +202,7 @@ export function AdminPartnersPage() {
               <tr key={p.id} className="hover:bg-white/5 transition-colors">
                 <td className="p-4">
                   {p.logo_url && (
-                    <img src={p.logo_url} alt={p.name} className="h-10 w-auto object-contain bg-white/10 rounded p-1" />
+                    <img src={getMediaUrl(p.logo_url)} alt={p.name} className="h-10 w-auto object-contain bg-white/10 rounded p-1" />
                   )}
                 </td>
                 <td className="p-4">

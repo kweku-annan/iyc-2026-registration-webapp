@@ -429,6 +429,24 @@ export function useDeletePartner(csrfToken: string) {
   });
 }
 
+export function useUploadImage(csrfToken: string) {
+  return useMutation({
+    mutationFn: (formData: FormData) =>
+      fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:8000"}/admin/upload/image`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "X-CSRF-Token": csrfToken },
+        body: formData,
+      }).then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new HttpError(res.status, body);
+        }
+        return res.json();
+      }),
+  });
+}
+
 // ── Donations ────────────────────────────────────────────────────────────────
 
 export interface DonationInitialize {
