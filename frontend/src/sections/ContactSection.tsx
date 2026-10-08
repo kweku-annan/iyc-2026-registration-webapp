@@ -3,7 +3,7 @@
  *
  * Update CONTACTS below with the real organizer details before launch.
  */
-import { Phone, Mail, Facebook, Instagram } from "lucide-react";
+import { Phone, Mail, Globe, Camera } from "lucide-react";
 
 const CONTACTS = [
   {
@@ -23,8 +23,8 @@ const CONTACTS = [
 ];
 
 const SOCIAL = [
-  { icon: <Facebook size={20} />, label: "Facebook", href: "https://facebook.com", id: "social-facebook" },
-  { icon: <Instagram size={20} />, label: "Instagram", href: "https://instagram.com", id: "social-instagram" },
+  { icon: <Globe size={20} />, label: "Facebook", href: "https://facebook.com", id: "social-facebook" },
+  { icon: <Camera size={20} />, label: "Instagram", href: "https://instagram.com", id: "social-instagram" },
 ];
 
 export function ContactSection() {
