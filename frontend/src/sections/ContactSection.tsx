@@ -3,28 +3,44 @@
  *
  * Update CONTACTS below with the real organizer details before launch.
  */
-import { Phone, Mail, Globe, Camera } from "lucide-react";
+import { Phone, Mail, Globe, Camera, Video, PlayCircle } from "lucide-react";
 
 const CONTACTS = [
   {
     icon: <Phone size={20} />,
     label: "WhatsApp / Call",
-    value: "+233 XX XXX XXXX",
-    href: "https://wa.me/233XXXXXXXXX",
-    id: "contact-whatsapp",
+    value: "+233 24 633 9623",
+    href: "https://wa.me/233246339623",
+    id: "contact-whatsapp-1",
+  },
+  {
+    icon: <Phone size={20} />,
+    label: "WhatsApp / Call",
+    value: "+233 54 089 7779",
+    href: "https://wa.me/233540897779",
+    id: "contact-whatsapp-2",
+  },
+  {
+    icon: <Phone size={20} />,
+    label: "WhatsApp / Call",
+    value: "+233 59 256 2930",
+    href: "https://wa.me/233592562930",
+    id: "contact-whatsapp-3",
   },
   {
     icon: <Mail size={20} />,
     label: "Email",
-    value: "info@iyc2026.com",
-    href: "mailto:info@iyc2026.com",
+    value: "int.youthforchrist@gmail.com",
+    href: "mailto:int.youthforchrist@gmail.com",
     id: "contact-email",
   },
 ];
 
-const SOCIAL = [
-  { icon: <Globe size={20} />, label: "Facebook", href: "https://facebook.com", id: "social-facebook" },
-  { icon: <Camera size={20} />, label: "Instagram", href: "https://instagram.com", id: "social-instagram" },
+export const SOCIAL = [
+  { icon: <Globe size={20} />, label: "Facebook", href: "https://web.facebook.com/profile.php?id=61586402571201", id: "social-facebook" },
+  { icon: <Camera size={20} />, label: "Instagram", href: "https://www.instagram.com/internationalyouthforchrist_", id: "social-instagram" },
+  { icon: <Video size={20} />, label: "TikTok", href: "https://www.tiktok.com/@intlyouthforchrist", id: "social-tiktok" },
+  { icon: <PlayCircle size={20} />, label: "YouTube", href: "https://www.youtube.com/@int.youthforchrist", id: "social-youtube" },
 ];
 
 export function ContactSection() {
@@ -49,7 +65,7 @@ export function ContactSection() {
           Contact Us
         </h2>
         <p
-          className="font-sans text-sm mb-10"
+          className="font-sans text-sm mb-14"
           style={{ color: "rgba(255,255,255,0.5)" }}
         >
           Have a question not answered in the FAQ? Reach out directly.
@@ -98,22 +114,42 @@ export function ContactSection() {
         </div>
 
         {/* Social links */}
-        <div className="flex items-center justify-center gap-4">
-          {SOCIAL.map((s) => (
-            <a
-              key={s.id}
-              id={s.id}
-              href={s.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={s.label}
-              className="flex items-center gap-2 font-sans text-sm transition-opacity hover:opacity-70"
-              style={{ color: "rgba(255,255,255,0.5)" }}
-            >
-              <span aria-hidden="true">{s.icon}</span>
-              {s.label}
-            </a>
-          ))}
+        <div className="mt-12">
+          <p
+            className="font-sans text-xs uppercase tracking-widest mb-10"
+            style={{ color: "var(--color-ice)" }}
+          >
+            Follow us on social media
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            {SOCIAL.map((s) => (
+              <a
+                key={s.id}
+                id={s.id}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="flex items-center gap-3 font-sans text-sm transition-all duration-300 hover:-translate-y-1 hover:opacity-100 rounded-full px-5 py-3 shadow-lg"
+                style={{ 
+                  color: "var(--color-ice)",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(103,163,177,0.3)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(216,245,249,0.15)";
+                  e.currentTarget.style.borderColor = "var(--color-ice)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+                  e.currentTarget.style.borderColor = "rgba(103,163,177,0.3)";
+                }}
+              >
+                <span aria-hidden="true">{s.icon}</span>
+                <span className="font-medium tracking-wide">{s.label}</span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </section>

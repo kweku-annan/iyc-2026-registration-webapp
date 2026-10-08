@@ -9,6 +9,7 @@
 
 import { type ReactNode, useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { SOCIAL } from "../sections/ContactSection";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -147,6 +148,21 @@ export function Layout({ children }: LayoutProps) {
           color: "rgba(255,255,255,0.5)",
         }}
       >
+        <div className="flex justify-center gap-6 mb-6">
+          {SOCIAL.map((s) => (
+            <a
+              key={s.id}
+              href={s.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={s.label}
+              className="transition-colors hover:text-white"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >
+              <span aria-hidden="true">{s.icon}</span>
+            </a>
+          ))}
+        </div>
         <p>
           © {CURRENT_YEAR} International Youth For Christ. All rights
           reserved.
