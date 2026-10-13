@@ -32,9 +32,11 @@ class Settings(BaseSettings):
     paystack_public_key: str = ""
 
     # SMS
-    sms_provider: str = "console"  # "console" | "mnotify"
-    sms_api_key: str = ""
-    sms_sender_id: str = "IYC2026"
+    sms_provider: str = "mnotify"  # "console" | "mnotify"
+    mnotify_api_key: str = ""
+    sms_sender_id: str = "IYC 2026"
+    mnotify_endpoint: AnyHttpUrl | str
+
 
     # OTP
     otp_enabled: bool = True
@@ -42,6 +44,8 @@ class Settings(BaseSettings):
     # Locale
     default_phone_region: str = "GH"
     event_timezone: str = "Africa/Accra"
+
+
 
     @field_validator("sms_provider")
     @classmethod

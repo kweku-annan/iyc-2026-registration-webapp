@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import abc
 import json
+import requests
 import logging
 from dataclasses import dataclass
 
@@ -53,11 +54,53 @@ class MnotifySmsProvider(SmsProvider):
 
     def send(self, to_e164: str, message: str) -> SmsResult:
         # STUB: Real implementation deferred until mNotify docs are provided.
-        logger.warning(f"MnotifySmsProvider is a stub. Would send to {to_e164}: {message}")
-        return SmsResult(
-            status="failed",
-            provider_response="STUB_NOT_IMPLEMENTED"
+        endpoint = str(settings.mnotify_endpoint)
+        api_key = str(settings.mnotify_api_key)
+        url = endpoint + '?key=' + api_key
+
+        response = requests.post(
+            f"{endpoint}?key={api_key}",
+            json={
+                "recipient": [to_e164],
+                "message": message,
+                "sender": settings.sms_sender_id,
+                "is_schedule": False,
+                "schedule_date": ""
+            },
+            timeout=15,
         )
+        response.raise_for_status()
+
+        response_data = response.json()
+        summary = response_data.get("summary") or {}
+
+        successful = (
+            response_data.get("status") == "success"
+            and response_data.get("code") == "2000"
+            and summary.get("total_rejected", 0) == 0
+        )
+
+        result =  SmsResult(
+            status="sent" if successful else "failed",
+            provider_response=json.dumps(response_data),
+        )
+
+        logger.info(
+            "mNotify SMS result: status=%s provider_status=%s code=%s "
+            "total_sent=%s total_rejected=%s message=%s credit_left=%s, credit_used=%s",
+            result.status,
+            response_data.get("status"),
+            response_data.get("code"),
+            summary.get("total_sent"),
+            summary.get("total_rejected"),
+            response_data.get("message"),
+            summary.get("credit_left"),
+            summary.get("credit_used")
+
+        )
+
+        return result
+
 
 
 def get_sms_provider() -> SmsProvider:
