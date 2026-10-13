@@ -39,7 +39,11 @@ class ConsoleSmsProvider(SmsProvider):
     """Dummy provider that just prints to the console (used for dev/test)."""
 
     def send(self, to_e164: str, message: str) -> SmsResult:
-        print(f"\n[CONSOLE SMS] To: {to_e164}\n[CONSOLE SMS] Message:\n{message}\n")
+        logger.info(
+            "[CONSOLE SMS] To: %s | Message: %s",
+            to_e164,
+            message,
+        )
         return SmsResult(
             status="sent",
             provider_response=json.dumps({"console": True, "delivered": True, "message": message})
@@ -130,18 +134,53 @@ def send_sms(
         The SmsResult from the provider.
     """
     provider = get_sms_provider()
+    provider_name = type(provider).__name__
+
+    # Mask the phone for privacy in logs (keep country code + last 4 digits)
+    masked_phone = to_phone[:-4].replace(to_phone[:-4], "*" * len(to_phone[:-4])) + to_phone[-4:]
+
+    logger.info(
+        "SMS send attempt: provider=%s template=%s to=%s registration_id=%s",
+        provider_name,
+        template,
+        masked_phone,
+        registration_id,
+    )
 
     # Catch any unexpected exceptions from the provider to ensure we still log a failure
     try:
         result = provider.send(to_e164=to_phone, message=message)
     except Exception as exc:
-        logger.exception("SMS provider threw an unexpected exception")
+        logger.exception(
+            "SMS provider threw an unexpected exception: provider=%s template=%s to=%s",
+            provider_name,
+            template,
+            masked_phone,
+        )
         result = SmsResult(
             status="failed",
             provider_response=f"EXCEPTION: {exc!s}"
         )
 
-    # Always log the attempt
+    if result.status == "sent":
+        logger.info(
+            "SMS delivered successfully: provider=%s template=%s to=%s registration_id=%s",
+            provider_name,
+            template,
+            masked_phone,
+            registration_id,
+        )
+    else:
+        logger.warning(
+            "SMS delivery failed: provider=%s template=%s to=%s registration_id=%s response=%s",
+            provider_name,
+            template,
+            masked_phone,
+            registration_id,
+            result.provider_response,
+        )
+
+    # Always log the attempt to the database
     log_entry = SmsLog(
         registration_id=registration_id,
         to_phone=to_phone,

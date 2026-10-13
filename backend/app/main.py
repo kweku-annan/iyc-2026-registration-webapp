@@ -2,11 +2,22 @@
 
 from __future__ import annotations
 
+import logging
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-import os
+
+# ── Logging ────────────────────────────────────────────────────────────────────
+# Configure the root logger once at startup so all module-level loggers
+# (e.g. app.services.sms) emit records instead of being silently discarded.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S",
+)
 
 from app.core.config import settings
 from app.core.exceptions import AppError
