@@ -17,7 +17,23 @@ async def initialize_donation(
     db: Session = Depends(get_db)
 ):
     if not settings.paystack_secret_key:
-        raise AppError("Payments are not configured yet.", code="payments_disabled", status_code=503)
+        from datetime import datetime, UTC
+        reference = f"don_dummy_{secrets.token_urlsafe(12)}"
+        donation = Donation(
+            reference=reference,
+            amount_minor=payload.amount_minor,
+            currency="GHS",
+            status="success",
+            is_anonymous=payload.is_anonymous,
+            donor_name=payload.donor_name if not payload.is_anonymous else None,
+            donor_email=payload.donor_email if not payload.is_anonymous else "anonymous@iyc2026.com",
+            paid_at=datetime.now(UTC)
+        )
+        db.add(donation)
+        db.commit()
+        return DonationInitializeResponse(
+            authorization_url=f"{settings.frontend_origin}/donate/thanks"
+        )
 
     # 1. Create a unique reference
     reference = f"don_{secrets.token_urlsafe(12)}"

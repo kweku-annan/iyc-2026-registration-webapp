@@ -41,8 +41,12 @@ export function DonatePage() {
 
   return (
     <Layout>
-      <div className="min-h-screen flex flex-col bg-deep font-sans text-white">
-        <main className="flex-1 flex items-center justify-center p-6 mt-16">
+      <div className="relative min-h-screen flex flex-col font-sans text-white overflow-hidden bg-deep">
+        {/* Animated background glows */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[rgba(103,163,177,0.15)] rounded-full mix-blend-screen filter blur-[100px] animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[rgba(28,110,134,0.2)] rounded-full mix-blend-screen filter blur-[120px] animate-pulse" style={{ animationDelay: "2s" }}></div>
+        
+        <main className="relative flex-1 flex items-center justify-center p-6 mt-16 z-10">
           <div className="w-full max-w-lg">
             <Link
               to="/"
@@ -59,7 +63,10 @@ export function DonatePage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white/5 border border-ice/20 p-8 rounded-2xl shadow-xl backdrop-blur-sm space-y-6">
+          <form onSubmit={handleSubmit} className="relative bg-[rgba(255,255,255,0.03)] border border-[rgba(103,163,177,0.2)] p-8 sm:p-10 rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl space-y-6 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+            
+            <div className="relative z-10 space-y-6">
             {errorMsg && (
               <div className="p-4 rounded-lg bg-red-500/20 text-red-200 border border-red-500/30 text-sm">
                 {errorMsg}
@@ -131,10 +138,15 @@ export function DonatePage() {
             <button
               type="submit"
               disabled={initMutation.isPending}
-              className="w-full py-4 rounded-xl bg-ice text-primary font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70 disabled:pointer-events-none"
+              className="w-full py-4 rounded-xl font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-70 disabled:pointer-events-none shadow-[0_0_20px_rgba(216,245,249,0.3)] hover:shadow-[0_0_30px_rgba(216,245,249,0.5)]"
+              style={{
+                background: "linear-gradient(to right, var(--color-ice), #ffffff)",
+                color: "var(--color-primary)",
+              }}
             >
               {initMutation.isPending ? "Initializing..." : "Proceed to Pay"}
             </button>
+            </div>
           </form>
 
           <p className="text-center text-sm text-white/40 mt-6">

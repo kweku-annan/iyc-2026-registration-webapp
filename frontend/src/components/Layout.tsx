@@ -72,21 +72,36 @@ export function Layout({ children }: LayoutProps) {
         </span>
       </Link>
 
-      {/* CTA — hide on register page to avoid duplication */}
-      {!isRegisterPage && (
-        <Link
-          to="/register"
-          id="nav-register-btn"
-          className="rounded-full font-sans font-semibold text-sm px-5 py-2 transition-all duration-200 hover:scale-[1.03]"
-          style={{
-            background: "var(--color-ice)",
-            color: "var(--color-primary)",
-            boxShadow: "0 0 20px rgba(216,245,249,0.2)",
-          }}
-        >
-          Register Free
-        </Link>
-      )}
+      {/* Actions */}
+      <div className="flex items-center gap-3">
+        {!pathname.startsWith("/donate") && (
+          <Link
+            to="/donate"
+            className="rounded-full font-sans font-semibold text-sm px-5 py-2 transition-all duration-200 hover:scale-[1.03]"
+            style={{
+              border: "1px solid rgba(103,163,177,0.5)",
+              color: "var(--color-ice)",
+              background: "rgba(103,163,177,0.1)",
+            }}
+          >
+            Donate
+          </Link>
+        )}
+        {!isRegisterPage && (
+          <Link
+            to="/register"
+            id="nav-register-btn"
+            className="rounded-full font-sans font-semibold text-sm px-5 py-2 transition-all duration-200 hover:scale-[1.03]"
+            style={{
+              background: "var(--color-ice)",
+              color: "var(--color-primary)",
+              boxShadow: "0 0 20px rgba(216,245,249,0.2)",
+            }}
+          >
+            Register Free
+          </Link>
+        )}
+      </div>
     </>
   );
 

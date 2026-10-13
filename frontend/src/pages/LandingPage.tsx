@@ -32,42 +32,52 @@ import { GallerySection } from "../sections/GallerySection";
 
 // ── Phase-2 placeholder card ──────────────────────────────────────────────────
 
-function PlaceholderCard({
-  // icon,
+function DonateCard({
   title,
   description,
 }: {
-  // icon: string;
   title: string;
   description: string;
 }) {
   return (
-    <div
-      className="rounded-2xl p-6 flex flex-col gap-3"
+    <Link
+      to="/donate"
+      className="relative rounded-[2rem] p-8 flex flex-col gap-4 transition-all duration-300 hover:scale-[1.02] group overflow-hidden"
       style={{
-        background: "rgba(255,255,255,0.05)",
+        background: "rgba(255,255,255,0.03)",
         border: "1px solid rgba(103,163,177,0.2)",
-        backdropFilter: "blur(8px)",
+        backdropFilter: "blur(16px)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
       }}
     >
-      <span className="text-3xl" aria-hidden="true"></span>
-      <h3 className="font-serif text-xl" style={{ color: "var(--color-ice)" }}>
-        {title}
-      </h3>
-      <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-        {description}
-      </p>
-      <span
-        className="text-xs font-sans font-medium px-3 py-1 rounded-full self-start"
-        style={{
-          background: "rgba(103,163,177,0.2)",
-          color: "var(--color-highlight)",
-          border: "1px solid rgba(103,163,177,0.3)",
-        }}
-      >
-        Coming Soon
-      </span>
-    </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+      <div className="absolute -inset-1 bg-gradient-to-r from-[rgba(103,163,177,0.3)] to-[rgba(28,110,134,0.3)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+      
+      <div className="relative z-10 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <span className="text-4xl" aria-hidden="true">💝</span>
+          <span
+            className="text-xs font-sans font-bold px-4 py-1.5 rounded-full transition-colors"
+            style={{
+              background: "var(--color-ice)",
+              color: "var(--color-primary)",
+              boxShadow: "0 0 15px rgba(216,245,249,0.3)",
+            }}
+          >
+            Donate Now
+          </span>
+        </div>
+        
+        <div>
+          <h3 className="font-serif text-2xl mb-2" style={{ color: "var(--color-ice)" }}>
+            {title}
+          </h3>
+          <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>
+            {description}
+          </p>
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -213,8 +223,7 @@ export function LandingPage() {
           </div>
 
           <div className="grid sm:grid-cols-1 gap-4 max-w-sm mx-auto">
-            <PlaceholderCard
-              // icon="💝"
+            <DonateCard
               title="Donate"
               description="Support the camp meeting ministry with a donation."
             />
