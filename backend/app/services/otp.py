@@ -6,6 +6,7 @@ expiry, max attempts, and hashing (argon2).
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import secrets
@@ -36,6 +37,11 @@ OTP_MAX_PER_PHONE_PER_DAY = 3
 # Simple in-memory IP rate limit: 5 requests per IP per 5 minutes.
 IP_RATE_LIMIT_MAX = 5
 IP_RATE_LIMIT_WINDOW_SECONDS = 300
+
+# NOTE: This is an in-memory rate limiter. It works correctly for single-process
+# deployments (e.g. a single Railway container). If you scale to multiple workers
+# or instances, replace this with a shared store (e.g. Redis) so limits are
+# enforced across all processes.
 
 # Tracker format: IP -> list of timestamps
 _ip_tracker: dict[str, list[float]] = defaultdict(list)
@@ -169,10 +175,12 @@ def send_otp(db: Session, phone_e164: str, ip_address: str) -> OtpSendResult:
 def generate_otp_token(phone_e164: str) -> str:
     """Generate a signed, short-lived token proving the phone was verified.
 
-    Valid for 30 minutes.
+    Valid for 30 minutes. The phone number is base64url-encoded inside the
+    token so it is not trivially readable in browser storage or network logs.
     """
     expires_at = int(time.time()) + (30 * 60)
-    payload = f"{phone_e164}.{expires_at}"
+    phone_b64 = base64.urlsafe_b64encode(phone_e164.encode()).decode().rstrip("=")
+    payload = f"{phone_b64}.{expires_at}"
     signature = hmac.new(
         settings.secret_key.encode("utf-8"),
         payload.encode("utf-8"),
@@ -188,12 +196,15 @@ def verify_otp_token(token: str) -> str:
         AppError: If the token is invalid, tampered with, or expired.
     """
     try:
-        phone_e164, expires_str, signature = token.split(".")
+        phone_b64, expires_str, signature = token.split(".")
         expires_at = int(expires_str)
-    except ValueError:
+        # Restore base64 padding and decode the phone number.
+        padding = "=" * (4 - len(phone_b64) % 4)
+        phone_e164 = base64.urlsafe_b64decode(phone_b64 + padding).decode()
+    except (ValueError, UnicodeDecodeError):
         raise AppError("Invalid OTP token.", code="invalid_token", status_code=400) from None
 
-    expected_payload = f"{phone_e164}.{expires_at}"
+    expected_payload = f"{phone_b64}.{expires_at}"
     expected_signature = hmac.new(
         settings.secret_key.encode("utf-8"),
         expected_payload.encode("utf-8"),

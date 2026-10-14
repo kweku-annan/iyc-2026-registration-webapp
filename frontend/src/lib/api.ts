@@ -51,7 +51,10 @@ async function request<T>(
     credentials: "include", // send auth cookies
     headers: {
       "Content-Type": "application/json",
-      // Custom header required for CSRF protection on cookie-authenticated requests.
+      // Defense-in-depth: prevents simple cross-origin form POSTs from matching
+      // our requests. The primary CSRF protection is the X-Csrf-Token header
+      // (a signed token from the session, validated server-side on every
+      // state-changing request).
       "X-Requested-With": "XMLHttpRequest",
     },
     body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,

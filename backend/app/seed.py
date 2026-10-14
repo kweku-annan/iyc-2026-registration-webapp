@@ -61,6 +61,13 @@ def seed_organizer(db) -> None:
         )
         return
 
+    if len(password) < 8:  # noqa: PLR2004
+        print(
+            "  ERROR: SEED_ORGANIZER_PASSWORD is too short (minimum 8 characters). "
+            "Please set a strong password before seeding."
+        )
+        return
+
     existing = db.query(User).filter_by(email=email).first()
     if existing:
         print(f"  User {email!r} already exists — skipping.")

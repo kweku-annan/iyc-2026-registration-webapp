@@ -1,4 +1,6 @@
 from datetime import date, datetime, timezone
+import secrets
+
 import phonenumbers
 from fastapi import APIRouter, Depends
 from sqlalchemy import or_, select
@@ -101,7 +103,6 @@ def walk_in_registration(
         )
         
     # Generate ticket code (simple implementation matching registration.py)
-    import secrets
     alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
     while True:
         code = "".join(secrets.choice(alphabet) for _ in range(8))

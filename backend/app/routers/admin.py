@@ -5,10 +5,9 @@ from __future__ import annotations
 import csv
 import io
 import os
-import shutil
 import uuid
 from datetime import date
-from typing import Any
+from typing import IO, Any
 
 from fastapi import APIRouter, Depends, Query, UploadFile, File
 from fastapi.responses import StreamingResponse
@@ -205,7 +204,7 @@ def export_registrations_excel(db: Session = Depends(get_db)) -> StreamingRespon
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except (TypeError, AttributeError):
                 pass
         ws.column_dimensions[col_letter].width = max_length + 2
 
@@ -359,19 +358,16 @@ def delete_partner(
     return {"detail": "Partner deleted"}
 
 # ── Donations ─────────────────────────────────────────────────────────────────
+# TODO: Donations is a pending feature. When implementing, add the full CRUD
+# admin endpoints here (list, detail, refund, export). The Donation model,
+# schema (DonationAdminResponse), and the public /donations/initialize +
+# Paystack webhook endpoints already exist — only the admin UI layer is missing.
 
 @router.get("/donations", response_model=list[DonationAdminResponse])
 def get_admin_donations(db: Session = Depends(get_db)):  # noqa: B008
     """List all donations."""
     stmt = select(Donation).order_by(Donation.created_at.desc())
     return db.execute(stmt).scalars().all()
-
-# ── Donations ─────────────────────────────────────────────────────────────────
-
-@router.get("/donations", response_model=list[DonationAdminResponse])
-def get_admin_donations(db: Session = Depends(get_db)):  # noqa: B008
-    """List all donations."""
-    stmt = select(Donation).order_by(Donation.created_at.desc())
 # ── Users (Organizers & Volunteers) ───────────────────────────────────────────
 
 @router.get("/users", response_model=list[UserAdminResponse])
@@ -451,17 +447,64 @@ def delete_admin_user(
 
 # ── Uploads ───────────────────────────────────────────────────────────────────
 
+# 5 MB hard limit on uploaded images.
+_MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
+
+# Only allow safe, browser-renderable raster image types.
+_ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
+_ALLOWED_CONTENT_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+}
+# Map content-type → canonical extension so we never rely on the client filename.
+_CONTENT_TYPE_TO_EXT: dict[str, str] = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp",
+}
+
+
 @router.post("/upload/image", dependencies=[Depends(verify_csrf)])
 def upload_image(file: UploadFile = File(...)):
-    """Upload an image and return its public URL."""
-    if not file.content_type.startswith("image/"):
-        raise AppError("File must be an image", code="invalid_file_type", status_code=400)
-    
-    ext = file.filename.split(".")[-1] if "." in file.filename else "png"
+    """Upload an image and return its public URL.
+
+    Enforces:
+    - Allowed content-types: JPEG, PNG, GIF, WebP.
+    - Maximum file size: 5 MB.
+    - Extension is derived from the validated content-type, never from the
+      client-supplied filename, to prevent extension-spoofing attacks.
+    """
+    # 1. Validate content-type (defence-in-depth; clients can spoof this, but
+    #    it stops the common case of accidentally uploading wrong file types).
+    content_type = (file.content_type or "").lower().split(";")[0].strip()
+    if content_type not in _ALLOWED_CONTENT_TYPES:
+        raise AppError(
+            f"Unsupported file type. Allowed types: {', '.join(sorted(_ALLOWED_CONTENT_TYPES))}.",
+            code="invalid_file_type",
+            status_code=400,
+        )
+
+    # 2. Read the file into memory up to the size limit + 1 byte so we can
+    #    detect oversized files without loading the whole thing.
+    chunk: IO[bytes] = file.file
+    data = chunk.read(_MAX_UPLOAD_BYTES + 1)
+    if len(data) > _MAX_UPLOAD_BYTES:
+        raise AppError(
+            "File too large. Maximum allowed size is 5 MB.",
+            code="file_too_large",
+            status_code=413,
+        )
+
+    # 3. Derive a safe extension from the validated content-type.
+    ext = _CONTENT_TYPE_TO_EXT.get(content_type, "jpg")
     filename = f"{uuid.uuid4().hex}.{ext}"
     filepath = os.path.join("uploads", filename)
-    
+
+    # 4. Write to disk.
     with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        
+        buffer.write(data)
+
     return {"url": f"/uploads/{filename}"}

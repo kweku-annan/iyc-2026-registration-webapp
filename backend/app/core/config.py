@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     default_phone_region: str = "GH"
     event_timezone: str = "Africa/Accra"
 
+    # Environment — controls whether debug/docs features are exposed.
+    # Set to "production" in Railway (or any hosting environment) to disable
+    # Swagger UI, ReDoc, and other development-only endpoints.
+    environment: str = "development"
+
 
 
     @field_validator("sms_provider")
@@ -53,6 +58,18 @@ class Settings(BaseSettings):
         allowed = {"console", "mnotify"}
         if v not in allowed:
             msg = f"SMS_PROVIDER must be one of {allowed}, got {v!r}"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("secret_key")
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
+        """Reject obviously weak secret keys at startup."""
+        if len(v) < 32:  # noqa: PLR2004
+            msg = (
+                "SECRET_KEY must be at least 32 characters long. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
             raise ValueError(msg)
         return v
 

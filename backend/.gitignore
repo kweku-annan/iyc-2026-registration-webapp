@@ -1,0 +1,19 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Uploads
+uploads/
+
+# Test artifacts
+*.db
+e2e_error.png
+e2e_page.html
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/

@@ -21,6 +21,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 LOGIN_RATE_LIMIT_MAX = 5
 LOGIN_RATE_LIMIT_WINDOW = 300  # 5 minutes
 
+# NOTE: This is an in-memory rate limiter. It works correctly for single-process
+# deployments (e.g. a single Railway container). If you scale to multiple workers
+# or instances, replace this with a shared store (e.g. Redis) so limits are
+# enforced across all processes.
 _login_attempts: dict[str, list[float]] = defaultdict(list)
 
 
@@ -79,12 +83,13 @@ def login(
 @router.post("/logout")
 def logout(response: Response) -> dict[str, str]:
     """Log out a user by clearing the session cookie."""
+    # NOTE: delete_cookie only accepts key, path, domain, and samesite.
+    # The httponly and secure kwargs are no-ops here (they only apply to
+    # set_cookie) and have been removed to avoid misleading code.
     response.delete_cookie(
         key="session_token",
         domain=settings.cookie_domain if settings.cookie_domain else None,
-        httponly=True,
-        secure=True,
-        samesite="lax"
+        samesite="lax",
     )
     return {"detail": "Logged out successfully"}
 

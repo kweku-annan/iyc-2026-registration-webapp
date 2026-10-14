@@ -57,11 +57,14 @@ class MnotifySmsProvider(SmsProvider):
     """
 
     def send(self, to_e164: str, message: str) -> SmsResult:
-        # STUB: Real implementation deferred until mNotify docs are provided.
         endpoint = str(settings.mnotify_endpoint)
         api_key = str(settings.mnotify_api_key)
-        url = endpoint + '?key=' + api_key
 
+        # NOTE: The API key is currently passed as a query parameter because
+        # mNotify's documented endpoint uses ?key=. This means the key may
+        # appear in server/proxy access logs. If mNotify adds header-based auth
+        # (e.g. Authorization: Bearer), migrate the key there and remove it
+        # from the URL.
         response = requests.post(
             f"{endpoint}?key={api_key}",
             json={
