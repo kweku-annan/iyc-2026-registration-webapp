@@ -108,9 +108,9 @@ def export_registrations_csv(db: Session = Depends(get_db)) -> StreamingResponse
     # Header
     writer.writerow([
         "ID", "First Name", "Last Name", "Other Names", "Date of Birth",
-        "Age", "Profession", "Student", "School", "Location", "Accommodation Preference", 
+        "Age", "Profession", "Student", "School", "Location", "Accommodation Preference",
         "Invited By Someone", "Invited By",
-        "Phone (E.164)", "Church", "Attended Before", "Ticket Code", "Source",
+        "Phone (E.164)", "Email", "Church", "Attended Before", "Ticket Code", "Source",
         "Registered At", "Verified At", "Checked In At"
     ])
 
@@ -131,6 +131,7 @@ def export_registrations_csv(db: Session = Depends(get_db)) -> StreamingResponse
             "Yes" if reg.invitation_by_someone else "No",
             reg.invitation_by_who or "",
             reg.phone_e164,
+            reg.email or "",
             reg.church,
             "Yes" if reg.attended_before else "No",
             reg.ticket_code,
@@ -163,9 +164,9 @@ def export_registrations_excel(db: Session = Depends(get_db)) -> StreamingRespon
 
     headers = [
         "ID", "First Name", "Last Name", "Other Names", "Date of Birth",
-        "Age", "Profession", "Student", "School", "Location", "Accommodation Preference", 
+        "Age", "Profession", "Student", "School", "Location", "Accommodation Preference",
         "Invited By Someone", "Invited By",
-        "Phone (E.164)", "Church", "Attended Before", "Ticket Code", "Source",
+        "Phone (E.164)", "Email", "Church", "Attended Before", "Ticket Code", "Source",
         "Registered At", "Verified At", "Checked In At"
     ]
     ws.append(headers)
@@ -186,6 +187,7 @@ def export_registrations_excel(db: Session = Depends(get_db)) -> StreamingRespon
             "Yes" if reg.invitation_by_someone else "No",
             reg.invitation_by_who or "",
             reg.phone_e164,
+            reg.email or "",
             reg.church,
             "Yes" if reg.attended_before else "No",
             reg.ticket_code,

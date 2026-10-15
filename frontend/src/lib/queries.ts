@@ -53,9 +53,11 @@ export interface RegistrationPayload {
   invitation_by_someone: boolean;
   invitation_by_who: string | null;
   phone: string;
+  email?: string | null; // optional — not required
   church: string;
   attended_before: boolean;
-  otp_token: string;
+  // otp_token intentionally omitted — OTP step is disconnected from the flow.
+  // useSendOtp / useVerifyOtp hooks below still exist for future re-enablement.
   website: ""; // honeypot — always empty
 }
 
@@ -151,6 +153,7 @@ export interface AdminRegistration {
   invitation_by_someone: boolean;
   invitation_by_who: string | null;
   phone_e164: string;
+  email: string | null;
   church: string;
   attended_before: boolean;
   ticket_code: string;

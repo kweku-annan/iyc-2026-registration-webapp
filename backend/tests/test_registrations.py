@@ -1,6 +1,6 @@
 """Tests for registration endpoints."""
 
-from datetime import date, UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,7 +14,7 @@ from app.models import Base
 from app.models.registration import Registration
 from app.models.settings import Settings
 from app.models.sms_log import SmsLog
-from app.services.otp import generate_otp_token
+import app.services.otp as otp_module
 
 
 def make_engine():
@@ -32,7 +32,7 @@ def db() -> Session:
     SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
     session = SessionLocal()
 
-    # Create default settings
+    # Create default settings (otp_enabled is kept in DB but disconnected from flow)
     settings = Settings(
         id=1,
         registration_open=True,
@@ -50,6 +50,14 @@ def db() -> Session:
     engine.dispose()
 
 
+@pytest.fixture(autouse=True)
+def reset_ip_tracker():
+    """Clear the in-memory IP rate limiter between tests to prevent cross-test pollution."""
+    otp_module._ip_tracker.clear()
+    yield
+    otp_module._ip_tracker.clear()
+
+
 @pytest.fixture()
 def client(db: Session) -> TestClient:
     def override_get_db():
@@ -58,6 +66,26 @@ def client(db: Session) -> TestClient:
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+def _base_payload(**overrides) -> dict:
+    """Return a valid registration payload without OTP token."""
+    payload = {
+        "first_name": "John",
+        "last_name": "Doe",
+        "date_of_birth": "1990-01-01",
+        "profession": "Engineer",
+        "student_status": False,
+        "location": "Test City",
+        "accommodation_preference": "Hotel",
+        "invitation_by_someone": False,
+        "phone": "0241234567",
+        "church": "Grace Chapel",
+        "attended_before": False,
+        "website": "",
+    }
+    payload.update(overrides)
+    return payload
 
 
 def test_registration_status_open(client: TestClient):
@@ -77,7 +105,6 @@ def test_registration_status_closed_by_flag(client: TestClient, db: Session):
 
 def test_registration_status_closed_by_date(client: TestClient, db: Session):
     s = db.get(Settings, 1)
-    # Set to past
     s.registration_closes_at = datetime.now(UTC) - timedelta(days=1)
     db.commit()
 
@@ -86,154 +113,100 @@ def test_registration_status_closed_by_date(client: TestClient, db: Session):
 
 
 def test_create_registration_success(client: TestClient, db: Session):
-    # Need a valid token
-    token = generate_otp_token("+233241234567")
-
-    payload = {
-        "first_name": "John",
-        "last_name": "Doe",
-        "date_of_birth": "1990-01-01",
-        "profession": "Engineer",
-        "student_status": False,
-        "location": "Test City",
-        "accommodation_preference": "Hotel",
-        "invitation_by_someone": False,
-        "phone": "0241234567",
-        "church": "Grace Chapel",
-        "attended_before": False,
-        "website": "",
-        "otp_token": token
-    }
-
-    res = client.post("/registrations", json=payload)
+    """Registration succeeds without an OTP token (OTP flow is disconnected)."""
+    res = client.post("/registrations", json=_base_payload())
     assert res.status_code == 200
     data = res.json()
-    assert "ticket_token" in data
+    assert data["already_registered"] is False
+    assert "detail" in data
 
-    # Check DB
+    # Check DB record was created
     reg = db.query(Registration).filter_by(phone_e164="+233241234567").first()
     assert reg is not None
     assert reg.ticket_code is not None
+    # phone_verified_at is None for online registrations now that OTP is disconnected
+    assert reg.phone_verified_at is None
 
-    # Check SMS Log
+    # Check confirmation SMS was sent
     log = db.query(SmsLog).first()
     assert log is not None
     assert log.template == "registration_success"
 
 
-def test_create_registration_duplicate(client: TestClient, db: Session):
-    # First registration
-    token = generate_otp_token("+233241234567")
-    client.post("/registrations", json={
-        "first_name": "John",
-        "last_name": "Doe",
-        "date_of_birth": "1990-01-01",
-        "profession": "Engineer",
-        "student_status": False,
-        "location": "Test City",
-        "accommodation_preference": "Hotel",
-        "invitation_by_someone": False,
-        "phone": "0241234567",
-        "church": "Grace",
-        "attended_before": False,
-        "website": "",
-        "otp_token": token
-    })
+def test_create_registration_with_optional_email(client: TestClient, db: Session):
+    """Registration accepts an optional email address."""
+    res = client.post("/registrations", json=_base_payload(email="john@example.com"))
+    assert res.status_code == 200
+    assert res.json()["already_registered"] is False
 
+    reg = db.query(Registration).filter_by(phone_e164="+233241234567").first()
+    assert reg is not None
+    assert reg.email == "john@example.com"
+
+
+def test_create_registration_without_email(client: TestClient, db: Session):
+    """Registration succeeds when email is omitted."""
+    res = client.post("/registrations", json=_base_payload())
+    assert res.status_code == 200
+
+    reg = db.query(Registration).filter_by(phone_e164="+233241234567").first()
+    assert reg is not None
+    assert reg.email is None
+
+
+def test_create_registration_duplicate(client: TestClient, db: Session):
+    """Submitting the same phone number twice returns already_registered=True."""
+    # First registration
+    client.post("/registrations", json=_base_payload())
+
+    # Clear SMS log to isolate the duplicate signal
     db.query(SmsLog).delete()
     db.commit()
 
-    # Duplicate registration
-    res = client.post("/registrations", json={
-        "first_name": "John",
-        "last_name": "Doe",
-        "date_of_birth": "1990-01-01",
-        "profession": "Engineer",
-        "student_status": False,
-        "location": "Test City",
-        "accommodation_preference": "Hotel",
-        "invitation_by_someone": False,
-        "phone": "0241234567",
-        "church": "Grace",
-        "attended_before": False,
-        "website": "",
-        "otp_token": token
-    })
+    # Duplicate registration with same phone
+    res = client.post("/registrations", json=_base_payload())
     assert res.status_code == 200
-    assert "already registered" in res.json()["detail"]
+    data = res.json()
+    assert data["already_registered"] is True
+    assert "already registered" in data["detail"].lower()
 
     # Should only be one record
     regs = db.query(Registration).all()
     assert len(regs) == 1
-    assert regs[0].full_name == "John Doe"  # Name didn't change
 
-    # SMS should be resent
+    # Ticket SMS should be resent
     log = db.query(SmsLog).first()
     assert log is not None
     assert log.template == "registration_duplicate"
 
 
 def test_create_registration_honeypot(client: TestClient):
-    payload = {
-        "first_name": "John",
-        "last_name": "Doe",
-        "date_of_birth": "1990-01-01",
-        "profession": "Engineer",
-        "student_status": False,
-        "location": "Test City",
-        "accommodation_preference": "Hotel",
-        "invitation_by_someone": False,
-        "phone": "0241234567",
-        "church": "Bot",
-        "attended_before": False,
-        "website": "http://spam.com",
-        "otp_token": "token"
-    }
-    res = client.post("/registrations", json=payload)
+    """Honeypot field filled → rejected as bot."""
+    res = client.post("/registrations", json=_base_payload(website="http://spam.com"))
     assert res.status_code == 400
 
 
-def test_create_registration_otp_required(client: TestClient):
-    payload = {
-        "first_name": "John",
-        "last_name": "Doe",
-        "date_of_birth": "1990-01-01",
-        "profession": "Engineer",
-        "student_status": False,
-        "location": "Test City",
-        "accommodation_preference": "Hotel",
-        "invitation_by_someone": False,
-        "phone": "0241234567",
-        "church": "Church",
-        "attended_before": False,
-        "website": ""
-    }
-    res = client.post("/registrations", json=payload)
-    assert res.status_code == 400
-    assert res.json()["code"] == "otp_required"
+def test_create_registration_no_otp_required(client: TestClient):
+    """Registration no longer requires an OTP token — succeeds without one."""
+    # OTP flow is disconnected; submitting without otp_token must succeed
+    res = client.post("/registrations", json=_base_payload())
+    assert res.status_code == 200
+    assert res.json()["already_registered"] is False
 
 
 def test_get_ticket(client: TestClient, db: Session):
-    token = generate_otp_token("+233241234567")
-    res = client.post("/registrations", json={
-        "first_name": "John",
-        "last_name": "Doe",
-        "date_of_birth": "1990-01-01",
-        "profession": "Engineer",
-        "student_status": False,
-        "location": "Test City",
-        "accommodation_preference": "Hotel",
-        "invitation_by_someone": False,
-        "phone": "0241234567",
-        "church": "Grace",
-        "attended_before": False,
-        "website": "",
-        "otp_token": token
-    })
-    ticket_token = res.json()["ticket_token"]
+    """Ticket page returns data for a valid ticket token."""
+    # Use a unique phone to avoid any state from previous tests
+    res = client.post("/registrations", json=_base_payload(phone="0244000001"))
+    assert res.status_code == 200
+
+    reg = db.query(Registration).filter_by(phone_e164="+233244000001").first()
+    assert reg is not None
+    ticket_token = reg.ticket_token
 
     res = client.get(f"/tickets/{ticket_token}")
     assert res.status_code == 200
     data = res.json()
-    assert data["full_name"] == "Jane Doe"
+    assert data["first_name"] == "John"
+    assert data["last_name"] == "Doe"
     assert "ticket_code" in data

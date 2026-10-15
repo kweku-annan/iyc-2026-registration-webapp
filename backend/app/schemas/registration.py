@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class RegistrationStatusResponse(BaseModel):
@@ -24,14 +24,16 @@ class RegistrationCreate(BaseModel):
     invitation_by_someone: bool = Field(..., description="Whether the registrant was invited by someone")
     invitation_by_who: str | None = Field(None, min_length=2, max_length=150, description="Name of the person who invited the registrant if invitation_by_someone is True")
     phone: str = Field(..., description="Phone number")
+    # Optional email address — not required or verified.
+    email: EmailStr | None = Field(None, description="Optional email address")
     church: str = Field(..., min_length=2, max_length=150, description="Name of the church")
     attended_before: bool = Field(..., description="Has the person attended IYC before?")
 
     # Honeypot field for bot protection (must be empty or omitted)
     website: str = Field("", description="Honeypot field for bots. Must be empty.")
 
-    # Optional if OTP is globally disabled, but required if enabled.
-    otp_token: str | None = Field(None, description="Signed OTP token proving phone verification")
+    # otp_token is intentionally omitted — OTP step is disconnected from the flow.
+    # The service and endpoints still exist but are not called during registration.
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -53,5 +55,6 @@ class TicketResponse(BaseModel):
     attended_before: bool
     ticket_code: str
     ticket_token: str
+    email: str | None
 
     model_config = ConfigDict(from_attributes=True)

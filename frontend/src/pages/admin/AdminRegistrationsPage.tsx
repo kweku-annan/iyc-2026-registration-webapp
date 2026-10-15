@@ -309,7 +309,7 @@ export function AdminRegistrationsPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
             <thead>
               <tr>
-                {["Name", "Age", "Profession", "School", "Location", "Accommodation", "Phone", "Church", "Code", "Source", "Registered", "Checked In", ""].map((h) => (
+                {["Name", "Age", "Profession", "School", "Location", "Accommodation", "Phone", "Email", "Church", "Code", "Source", "Registered", "Checked In", ""].map((h) => (
                   <th key={h} scope="col" style={TH}>{h}</th>
                 ))}
               </tr>
@@ -333,6 +333,9 @@ export function AdminRegistrationsPage() {
                      reg.accommodation_preference === "hostel" ? "Hostel" : "—"}
                   </td>
                   <td style={TD}>{reg.phone_e164}</td>
+                  <td style={{ ...TD, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {reg.email ?? <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>}
+                  </td>
                   <td style={{ ...TD, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis" }}>
                     {reg.church}
                   </td>

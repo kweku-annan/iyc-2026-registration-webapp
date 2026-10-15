@@ -1,89 +1,28 @@
 /**
- * Registration flow — 3 steps:
- *  1. Phone    — phone input with country selector (defaults to GH)
- *  2. OTP      — 6-digit code verification
- *  3. Details  — attendee profile and church details
+ * Registration flow — 2 steps:
+ *  1. Details  — phone, optional email, and attendee profile fields
+ *  2. Done     — success or already-registered confirmation
  *
- * On success, redirects to /ticket/:token
+ * OTP infrastructure (useSendOtp / useVerifyOtp hooks) is intentionally NOT connected
+ * to this flow. The backend endpoints still exist and can be re-enabled in the future.
  *
- * Handles: registration closed, duplicate, rate-limited, offline, server errors.
+ * Handles: registration closed, duplicate phone, rate-limited, offline, server errors.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { Layout, Button, Input, FormField, useToast } from "../components";
+import { Layout, Button, Input, FormField } from "../components";
 import {
   useRegistrationStatus,
-  useSendOtp,
-  useVerifyOtp,
   useCreateRegistration,
 } from "../lib/queries";
 import { HttpError } from "../lib/api";
 import { Check, CloudRain, CheckCircle, User as UserIcon } from "lucide-react";
-
-// ── Step indicator ──────────────────────────────────────────────────────────
-
-type Step = "phone" | "otp" | "details" | "done";
-
-const STEPS: { id: Step; label: string }[] = [
-  { id: "phone", label: "Phone" },
-  { id: "otp", label: "Verify" },
-  { id: "details", label: "Details" },
-  { id: "done", label: "Done" },
-];
-
-function StepIndicator({ current }: { current: Step }) {
-  const currentIndex = STEPS.findIndex((s) => s.id === current);
-  return (
-    <div className="flex items-center justify-center gap-0 mb-8" role="list">
-      {STEPS.map((step, i) => {
-        const done = i < currentIndex;
-        const active = i === currentIndex;
-        return (
-          <div key={step.id} className="flex items-center" role="listitem">
-            <div className="flex flex-col items-center gap-1">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-sans transition-all duration-300"
-                style={{
-                  background: done
-                    ? "var(--color-highlight)"
-                    : active
-                      ? "var(--color-ice)"
-                      : "rgba(255,255,255,0.1)",
-                  color: done || active ? "var(--color-primary)" : "rgba(255,255,255,0.4)",
-                  boxShadow: active ? "0 0 20px rgba(216,245,249,0.4)" : "none",
-                }}
-                aria-current={active ? "step" : undefined}
-              >
-                {done ? <Check size={16} /> : i + 1}
-              </div>
-              <span
-                className="text-[10px] font-sans hidden sm:block"
-                style={{ color: active ? "var(--color-ice)" : "rgba(255,255,255,0.4)" }}
-              >
-                {step.label}
-              </span>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div
-                className="w-12 sm:w-16 h-px mx-1 transition-all duration-500"
-                style={{
-                  background: done ? "var(--color-highlight)" : "rgba(255,255,255,0.1)",
-                }}
-                aria-hidden="true"
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 // ── Glassmorphic card wrapper ───────────────────────────────────────────────
 
@@ -152,7 +91,7 @@ function RegistrationClosed() {
   );
 }
 
-// ── Zod schemas ─────────────────────────────────────────────────────────────
+// ── Zod schema ──────────────────────────────────────────────────────────────
 
 const detailsSchema = z.object({
   first_name: z
@@ -166,7 +105,9 @@ const detailsSchema = z.object({
   student_status: z.enum(["yes", "no"], { required_error: "Please select an option" }),
   school_name: z.string().max(150).optional(),
   location: z.string().min(2, "Location is required").max(150),
-  accommodation_preference: z.enum(["camp_site", "hotel", "hostel"], { required_error: "Please select an accommodation preference" }),
+  accommodation_preference: z.enum(["camp_site", "hotel", "hostel"], {
+    required_error: "Please select an accommodation preference",
+  }),
   invitation_by_someone: z.enum(["yes", "no"], { required_error: "Please select an option" }),
   invitation_by_who: z.string().max(150).optional(),
   church: z
@@ -176,6 +117,12 @@ const detailsSchema = z.object({
   attended_before: z.enum(["yes", "no"], {
     required_error: "Please select an option",
   }),
+  // Email is optional — valid email format if provided, or blank
+  email: z
+    .string()
+    .email("Please enter a valid email address")
+    .optional()
+    .or(z.literal("")),
 });
 
 type DetailsForm = z.infer<typeof detailsSchema>;
@@ -184,22 +131,17 @@ type DetailsForm = z.infer<typeof detailsSchema>;
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { push: notify } = useToast();
   const { data: status, isLoading: statusLoading } = useRegistrationStatus();
 
-  const [step, setStep] = useState<Step>("phone");
+  // Phone is controlled outside React Hook Form so the PhoneInput component
+  // can update it freely. It's validated manually on submit.
   const [phone, setPhone] = useState<string>("");
   const [phoneError, setPhoneError] = useState<string>("");
-  const [isExistingRegistration, setIsExistingRegistration] = useState(false);
-  const [otpToken, setOtpToken] = useState<string>("");
-  const [otpCode, setOtpCode] = useState<string>("");
-  const [otpError, setOtpError] = useState<string>("");
-  const [submitError, setSubmitError] = useState<string>("");
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const sendOtp = useSendOtp();
-  const verifyOtp = useVerifyOtp();
+  const [isExistingRegistration, setIsExistingRegistration] = useState(false);
+  const [submitError, setSubmitError] = useState<string>("");
+  const [isDone, setIsDone] = useState(false);
+
   const createReg = useCreateRegistration();
 
   const {
@@ -216,93 +158,17 @@ export function RegisterPage() {
   const attendedBefore = watch("attended_before");
   const accommodationPreference = watch("accommodation_preference");
 
-  // Start/reset resend cooldown
-  function startCooldown(seconds = 60) {
-    setResendCooldown(seconds);
-    if (cooldownRef.current) clearInterval(cooldownRef.current);
-    cooldownRef.current = setInterval(() => {
-      setResendCooldown((s) => {
-        if (s <= 1) {
-          clearInterval(cooldownRef.current!);
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-  }
-
-  useEffect(() => () => { if (cooldownRef.current) clearInterval(cooldownRef.current); }, []);
-
-  // ── Step 1: Send OTP ──────────────────────────────────────────────────────
-  // async function handleSendOtp(isResend = false) {
-  //   setPhoneError("");
-  //   if (!phone || !isValidPhoneNumber(phone)) {
-  //     setPhoneError("Please enter a valid phone number.");
-  //     return;
-  //   }
-  //
-  //   try {
-  //     await sendOtp.mutateAsync({ phone });
-  //     startCooldown();
-  //     if (!isResend) {
-  //       setStep("otp");
-  //     } else {
-  //       notify("A new code has been sent to your phone.", "success");
-  //     }
-  //   } catch (err) {
-  //     setPhoneError(extractError(err));
-  //   }
-  // }
-
-  async function handleSendOtp(isResend = false) {
+  // ── Submit handler ────────────────────────────────────────────────────────
+  async function handleSubmitDetails(data: DetailsForm) {
+    setSubmitError("");
     setPhoneError("");
 
+    // Validate phone number before submitting
     if (!phone || !isValidPhoneNumber(phone)) {
       setPhoneError("Please enter a valid phone number.");
       return;
     }
 
-    try {
-      const result = await sendOtp.mutateAsync({ phone });
-
-      // Existing users do not reeceive an OTP and do not continue to the OTP step.
-      if (result.already_registered) {
-        setIsExistingRegistration(true);
-        setStep("done")
-        return;
-      }
-
-      startCooldown();
-      if (!isResend) {
-        setStep("otp");
-      } else {
-        notify("A new code has been sent to your phone.", "success");
-      }
-    } catch (err) {
-        setPhoneError(extractError(err));
-    }
-  }
-
-  // ── Step 2: Verify OTP ────────────────────────────────────────────────────
-  async function handleVerifyOtp() {
-    setOtpError("");
-    if (otpCode.length !== 6) {
-      setOtpError("Please enter the 6-digit code.");
-      return;
-    }
-
-    try {
-      const result = await verifyOtp.mutateAsync({ phone, code: otpCode });
-      setOtpToken(result.token);
-      setStep("details");
-    } catch (err) {
-      setOtpError(extractError(err));
-    }
-  }
-
-  // ── Step 3: Submit details ────────────────────────────────────────────────
-  async function handleSubmitDetails(data: DetailsForm) {
-    setSubmitError("");
     try {
       const result = await createReg.mutateAsync({
         first_name: data.first_name,
@@ -317,14 +183,14 @@ export function RegisterPage() {
         invitation_by_someone: data.invitation_by_someone === "yes",
         invitation_by_who: data.invitation_by_who || null,
         phone,
+        email: data.email || null,
         church: data.church,
         attended_before: data.attended_before === "yes",
-        otp_token: otpToken,
         website: "",
       });
 
       setIsExistingRegistration(result.already_registered);
-      setStep("done");
+      setIsDone(true);
     } catch (err) {
       setSubmitError(extractError(err));
     }
@@ -385,214 +251,109 @@ export function RegisterPage() {
           </h1>
         </div>
 
-        <StepIndicator current={step} />
-
-        {/* ── STEP 1: Phone ── */}
-        {step === "phone" && (
+        {/* ── DONE Card ── */}
+        {isDone && (
           <Card>
-            <div>
-              <h2 className="font-serif text-2xl mb-1" style={{ color: "var(--color-ice)" }}>
-                Enter your phone number
-              </h2>
-              <p className="font-sans text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-                We'll send a verification code to this number.
-              </p>
-            </div>
-
-            <FormField label="Phone Number" htmlFor="phone-input" required error={phoneError}>
+            <div className="text-center flex flex-col items-center gap-6">
               <div
-                className="flex items-center gap-2 rounded-xl px-4 py-3 transition-all duration-200"
+                className="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
                 style={{
-                  background: "rgba(255,255,255,0.1)",
-                  border: `1px solid ${phoneError ? "rgba(239,68,68,0.6)" : "rgba(103,163,177,0.4)"}`,
+                  background: "rgba(216,245,249,0.15)",
+                  border: "1px solid rgba(216,245,249,0.35)",
+                  color: "var(--color-ice)",
+                  boxShadow: "0 0 30px rgba(216,245,249,0.15)",
                 }}
+                aria-hidden="true"
               >
-                <PhoneInput
-                  id="phone-input"
-                  international
-                  defaultCountry="GH"
-                  value={phone}
-                  onChange={(v) => setPhone(v ?? "")}
-                  placeholder="024 000 0000"
-                  aria-label="Phone number"
-                />
+                <Check size={32} />
               </div>
-            </FormField>
 
-            <Button
-              id="send-otp-btn"
-              onClick={() => handleSendOtp(false)}
-              loading={sendOtp.isPending}
-              fullWidth
-            >
-              Send Verification Code
-            </Button>
-          </Card>
-        )}
-
-        {/*  -- Already Registered Step --*/}
-        {step === "done" && (
-            <Card>
-                <div className="text-center flex flex-col items-center gap-6">
-                  <div
-                     className="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                     style={{
-                        background: "rgba(216,245,249,0.15)",
-                        border: "1px solid rgba(216,245,249,0.35)",
-                        color: "var(--color-ice)",
-                        boxShadow: "0 0 30px rgba(216,245,249,0.15)",
-                     }}
-                     aria-hidden="true"
+              <div className="flex flex-col gap-4">
+                <h2
+                  className="font-serif text-2xl sm:text-3xl"
+                  style={{ color: "var(--color-ice)" }}
+                >
+                  {isExistingRegistration
+                    ? "You are already registered"
+                    : "Registration Complete"}
+                </h2>
+                <p
+                  className="font-sans text-sm sm:text-base leading-relaxed"
+                  style={{ color: "rgba(255,255,255,0.72)" }}
+                >
+                  {isExistingRegistration
+                    ? "Your registration has already been completed. Your ticket number and ticket link have been sent to your phone by SMS."
+                    : "Thank you for registering for IYC Camp Meeting 2026! Your ticket number and ticket link have been sent to your phone by SMS."}
+                </p>
+                {!isExistingRegistration && (
+                  <p
+                    className="font-sans text-sm sm:text-base leading-relaxed"
+                    style={{ color: "rgba(255,255,255,0.72)" }}
                   >
-                    <Check size={32} />
-                  </div>
+                    Over the course of the weeks ahead, you will receive SMS messages from the
+                    organizers about activities and important information leading up to
+                    the program.
+                  </p>
+                )}
+                <p
+                  className="font-sans text-sm leading-relaxed"
+                  style={{ color: "rgba(255,255,255,0.55)" }}
+                >
+                  Please check your messages. If you did not receive the SMS,
+                  please contact the organizers for assistance.
+                </p>
+              </div>
 
-                  <div className="flex flex-col gap-4">
-                    <h2
-                      className="font-serif text-2xl sm:text-3xl"
-                      style={{ color: "var(--color-ice)" }}
-                    >
-                      {isExistingRegistration
-                          ? "You are already registered"
-                            : "Registration Complete"}
-                    </h2>
-                    <p
-                        className="font-sans text-sm sm:text-base leading-relaxed"
-                        style={{ color: "rgba(255,255,255,0.72)" }}
-                    >
-                      {isExistingRegistration
-                          ? "Your registration has already been completed. Your ticket number and ticket link have been sent to your phone by SMS."
-                          : "Thank you for registering for IYC Camp Meeting 2026! Your ticket number and ticket link have been sent to your phone by SMS."}
-                    </p>
-                    {!isExistingRegistration && (
-                    <p
-                      className="font-sans text-sm sm:text-base leading-relaxed"
-                      style={{ color: "rgba(255,255,255,0.72)" }}
-                    >
-                      Over the course of the weeks ahead, you will receive SMS messages from the
-                      organizers about activities and important information leading up to
-                      the program.
-                    </p>
-                    )}
-                    <p
-                      className="font-sans text-sm leading-relaxed"
-                      style={{ color: "rgba(255,255,255,0.55)" }}
-                    >
-                      Please check your messages. If you did not receive the SMS,
-                      please contact the organizers for assistance.
-                    </p>
-                  </div>
-                  {!isExistingRegistration && (
-                    <div className="w-full flex flex-col gap-3">
-                      <a
-                        href="https://getdp.co/wD7"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center rounded-full font-sans font-semibold px-6 py-3 transition-all duration-200"
-                        style={{
-                          background: "var(--color-ice)",
-                          color: "var(--color-primary)",
-                          boxShadow: "0 0 30px rgba(216,245,249,0.25)",
-                        }}
-                      >
-                        Create Your Personalized IYC Flyer
-                      </a>
-
-                      <a
-                        href="/testimony"
-                        className="inline-flex items-center justify-center rounded-full font-sans font-semibold px-6 py-3 transition-all duration-200"
-                        style={{
-                          border: "1px solid rgba(103,163,177,0.5)",
-                          color: "var(--color-ice)",
-                          background: "transparent",
-                        }}
-                      >
-                        Share Your Testimony
-                      </a>
-                    </div>
-                  )}
-
-                  <Button
-                    variant="secondary"
-                    fullWidth
-                    onClick={() => navigate("/")}
+              {!isExistingRegistration && (
+                <div className="w-full flex flex-col gap-3">
+                  <a
+                    href="https://getdp.co/wD7"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center rounded-full font-sans font-semibold px-6 py-3 transition-all duration-200"
+                    style={{
+                      background: "var(--color-ice)",
+                      color: "var(--color-primary)",
+                      boxShadow: "0 0 30px rgba(216,245,249,0.25)",
+                    }}
                   >
-                    Go to Home
-                  </Button>
+                    Create Your Personalized IYC Flyer
+                  </a>
+
+                  <a
+                    href="/testimony"
+                    className="inline-flex items-center justify-center rounded-full font-sans font-semibold px-6 py-3 transition-all duration-200"
+                    style={{
+                      border: "1px solid rgba(103,163,177,0.5)",
+                      color: "var(--color-ice)",
+                      background: "transparent",
+                    }}
+                  >
+                    Share Your Testimony
+                  </a>
                 </div>
-            </Card>
-        )}
+              )}
 
-        {/* ── STEP 2: OTP ── */}
-        {step === "otp" && (
-          <Card>
-            <div>
-              <h2 className="font-serif text-2xl mb-1" style={{ color: "var(--color-ice)" }}>
-                Enter the code
-              </h2>
-              <p className="font-sans text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-                A 6-digit code was sent to{" "}
-                <strong style={{ color: "var(--color-ice)" }}>{phone}</strong>.
-                It expires in 10 minutes.
-              </p>
-            </div>
-
-            <FormField label="Verification Code" htmlFor="otp-input" required error={otpError}>
-              <Input
-                id="otp-input"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={6}
-                placeholder="000000"
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                error={!!otpError}
-                autoComplete="one-time-code"
-                className="text-center text-2xl tracking-widest"
-              />
-            </FormField>
-
-            <Button
-              id="verify-otp-btn"
-              onClick={handleVerifyOtp}
-              loading={verifyOtp.isPending}
-              fullWidth
-            >
-              Verify Code
-            </Button>
-
-            <div className="flex flex-col items-center gap-2 text-sm font-sans">
-              <span style={{ color: "rgba(255,255,255,0.5)" }}>Didn't receive it?</span>
-              <button
-                id="resend-otp-btn"
-                onClick={() => handleSendOtp(true)}
-                disabled={resendCooldown > 0 || sendOtp.isPending}
-                className="font-semibold transition-opacity disabled:opacity-40"
-                style={{ color: "var(--color-ice)" }}
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => navigate("/")}
               >
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
-              </button>
-              <button
-                onClick={() => { setStep("phone"); setOtpCode(""); setOtpError(""); }}
-                className="text-xs"
-                style={{ color: "rgba(255,255,255,0.4)" }}
-              >
-                Change phone number
-              </button>
+                Go to Home
+              </Button>
             </div>
           </Card>
         )}
 
-        {/* ── STEP 3: Details ── */}
-        {step === "details" && (
+        {/* ── Details Form ── */}
+        {!isDone && (
           <Card>
             <div>
               <h2 className="font-serif text-2xl mb-1" style={{ color: "var(--color-ice)" }}>
                 Your details
               </h2>
               <p className="font-sans text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-                Almost done! Just a few more details.
+                Fill in your details below to complete your registration.
               </p>
             </div>
 
@@ -602,6 +363,46 @@ export function RegisterPage() {
               className="flex flex-col gap-5"
               noValidate
             >
+              {/* ── Contact Info ── */}
+              <FormField label="Phone Number" htmlFor="phone-input" required error={phoneError}>
+                <div
+                  className="flex items-center gap-2 rounded-xl px-4 py-3 transition-all duration-200"
+                  style={{
+                    background: "rgba(255,255,255,0.1)",
+                    border: `1px solid ${phoneError ? "rgba(239,68,68,0.6)" : "rgba(103,163,177,0.4)"}`,
+                  }}
+                >
+                  <PhoneInput
+                    id="phone-input"
+                    international
+                    defaultCountry="GH"
+                    value={phone}
+                    onChange={(v) => {
+                      setPhone(v ?? "");
+                      if (phoneError) setPhoneError("");
+                    }}
+                    placeholder="024 000 0000"
+                    aria-label="Phone number"
+                  />
+                </div>
+              </FormField>
+
+              <FormField
+                label="Email Address"
+                htmlFor="email"
+                error={errors.email?.message}
+              >
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Optional — e.g. kofi@example.com"
+                  autoComplete="email"
+                  error={!!errors.email}
+                  {...register("email")}
+                />
+              </FormField>
+
+              {/* ── Personal Info ── */}
               <FormField label="First Name" htmlFor="first-name" required error={errors.first_name?.message}>
                 <Input
                   id="first-name"
@@ -642,10 +443,10 @@ export function RegisterPage() {
                     const isSelected = accommodationPreference === val;
                     const displayLabel = val === "camp_site" ? "Camp Site" : val === "hotel" ? "Hotel" : "Hostel";
                     return (
-                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200 text-center" style={{ 
-                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)", 
-                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)", 
-                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)" 
+                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200 text-center" style={{
+                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)",
+                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)",
+                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)"
                       }}>
                         <input type="radio" id={`accommodation-${val}`} value={val} className="sr-only" {...register("accommodation_preference")} />
                         {displayLabel}
@@ -660,10 +461,10 @@ export function RegisterPage() {
                   {(["yes", "no"] as const).map((val) => {
                     const isSelected = studentStatus === val;
                     return (
-                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200" style={{ 
-                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)", 
-                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)", 
-                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)" 
+                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200" style={{
+                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)",
+                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)",
+                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)"
                       }}>
                         <input type="radio" id={`student-status-${val}`} value={val} className="sr-only" {...register("student_status")} />
                         {val === "yes" ? "Yes" : "No"}
@@ -682,10 +483,10 @@ export function RegisterPage() {
                   {(["yes", "no"] as const).map((val) => {
                     const isSelected = invitationBySomeone === val;
                     return (
-                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200" style={{ 
-                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)", 
-                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)", 
-                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)" 
+                      <label key={val} className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 cursor-pointer font-sans text-sm font-medium transition-all duration-200" style={{
+                        border: isSelected ? "1px solid var(--color-ice)" : "1px solid rgba(103,163,177,0.4)",
+                        background: isSelected ? "var(--color-ice)" : "rgba(255,255,255,0.05)",
+                        color: isSelected ? "var(--color-primary)" : "rgba(255,255,255,0.8)"
                       }}>
                         <input type="radio" id={`invitation-${val}`} value={val} className="sr-only" {...register("invitation_by_someone")} />
                         {val === "yes" ? "Yes" : "No"}

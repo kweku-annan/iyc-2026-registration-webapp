@@ -1,4 +1,7 @@
-"""Registration model — one row per attendee."""
+"""Registration model — one row per attendee.
+
+Email is optional — collected for communication but not required or verified.
+"""
 
 from __future__ import annotations
 
@@ -28,6 +31,8 @@ class Registration(Base):
     invitation_by_who: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # E.164 format enforced by the phone service before insert.
     phone_e164: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
+    # Optional email address — not verified, used for communications only.
+    email: Mapped[str | None] = mapped_column(String(254), nullable=True)
     church: Mapped[str] = mapped_column(String(255), nullable=False)
     attended_before: Mapped[bool] = mapped_column(Boolean, nullable=False)
 

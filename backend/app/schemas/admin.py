@@ -40,6 +40,7 @@ class AdminRegistrationResponse(BaseModel):
     invitation_by_someone: bool
     invitation_by_who: str | None
     phone_e164: str
+    email: str | None
     church: str
     attended_before: bool
     ticket_code: str
