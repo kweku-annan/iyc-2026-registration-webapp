@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import date
+import re
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class RegistrationStatusResponse(BaseModel):
@@ -15,7 +15,22 @@ class RegistrationCreate(BaseModel):
     first_name: str = Field(..., min_length=2, max_length=150, description="First name of registrant")
     last_name: str = Field(..., min_length=2, max_length=150, description="Last name of registrant")
     other_names: str | None = Field(None, min_length=2, max_length=150, description="Other names of registrant")
-    date_of_birth: date = Field(..., description="Date of birth in YYYY-MM-DD format")
+    date_of_birth: str = Field(
+        ...,
+        description="Date of birth. Full date: YYYY-MM-DD. Partial (year optional): MM-DD.",
+    )
+
+    @field_validator("date_of_birth")
+    @classmethod
+    def validate_date_of_birth(cls, v: str) -> str:
+        """Accept YYYY-MM-DD or MM-DD. Reject anything else."""
+        full = re.fullmatch(r"\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])", v)
+        partial = re.fullmatch(r"(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])", v)
+        if not full and not partial:
+            raise ValueError(
+                "date_of_birth must be YYYY-MM-DD (full) or MM-DD (partial, year omitted)"
+            )
+        return v
     profession: str = Field(..., min_length=2, max_length=150, description="Profession of registrant")
     student_status: bool = Field(..., description="Whether the registrant is a student")
     school_name: str | None = Field(None, min_length=2, max_length=150, description="Name of the school if student_status is True")
@@ -42,8 +57,8 @@ class TicketResponse(BaseModel):
     first_name: str
     last_name: str
     other_names: str | None
-    date_of_birth: date
-    age: int
+    date_of_birth: str
+    age: int | None
     profession: str
     student_status: bool
     school_name: str | None

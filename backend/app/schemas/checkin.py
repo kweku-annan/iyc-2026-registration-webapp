@@ -9,8 +9,8 @@ class CheckinLookupResponse(BaseModel):
     first_name: str
     last_name: str
     other_names: Optional[str]
-    date_of_birth: date
-    age: int
+    date_of_birth: str
+    age: int | None
     profession: str
     student_status: bool
     school_name: Optional[str]
@@ -30,7 +30,7 @@ class WalkInRegistrationCreate(BaseModel):
     first_name: str
     last_name: str
     other_names: Optional[str] = None
-    date_of_birth: date
+    date_of_birth: str
     profession: str
     student_status: bool
     school_name: Optional[str] = None

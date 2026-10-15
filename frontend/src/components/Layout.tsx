@@ -77,21 +77,21 @@ export function Layout({ children }: LayoutProps) {
         {!pathname.startsWith("/donate") && (
           <Link
             to="/donate"
-            className="rounded-full font-sans font-semibold text-sm px-5 py-2 transition-all duration-200 hover:scale-[1.03]"
+            className="rounded-full font-sans font-bold transition-all duration-200 hover:scale-[1.03] text-sm px-4 py-2 sm:px-5 donate-nav-btn"
             style={{
               border: "1px solid rgba(103,163,177,0.5)",
               color: "var(--color-ice)",
               background: "rgba(103,163,177,0.1)",
             }}
           >
-            Donate
+            💝 Donate
           </Link>
         )}
         {!isRegisterPage && (
           <Link
             to="/register"
             id="nav-register-btn"
-            className="rounded-full font-sans font-semibold text-sm px-5 py-2 transition-all duration-200 hover:scale-[1.03]"
+            className="rounded-full font-sans font-semibold transition-all duration-200 hover:scale-[1.03] text-sm px-4 py-2 sm:px-5"
             style={{
               background: "var(--color-ice)",
               color: "var(--color-primary)",
@@ -108,10 +108,15 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-dvh flex flex-col">
       
-      {/* ── Fixed Sticky Nav (Visible on scroll past hero) ── */}
+      {/* ── Fixed Sticky Nav ──
+           • Mobile: always visible (banner stays clean)
+           • Desktop: slides in only after scrolling past the hero header
+      ── */}
       <div 
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          isSticky ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none"
+          isSticky
+            ? "translate-y-0 opacity-100"
+            : "md:-translate-y-full md:opacity-0 md:pointer-events-none translate-y-0 opacity-100"
         }`}
         style={{
           background: "rgba(28, 110, 134, 0.95)",
@@ -129,7 +134,8 @@ export function Layout({ children }: LayoutProps) {
       </div>
 
       {/* ── Nav & Header ────────────────────────────────────────────── */}
-      <header ref={headerRef} className="relative w-full z-40">
+      {/* On mobile the header banner is purely decorative — no overlay buttons */}
+      <header ref={headerRef} className="relative w-full z-40 mt-[56px] md:mt-0">
         <img 
           src="/proper-dimension.webp" 
           alt="Navigation Background" 
@@ -143,9 +149,9 @@ export function Layout({ children }: LayoutProps) {
           }}
         />
 
-        {/* This nav starts perfectly centered over the background image, and scrolls up naturally */}
+        {/* Overlay nav: desktop only — fades out when sticky nav takes over */}
         <nav
-          className={`absolute inset-0 mx-auto flex w-full max-w-6xl items-center justify-between px-5 transition-opacity duration-300 ${isSticky ? "opacity-0" : "opacity-100"}`}
+          className={`hidden md:flex absolute inset-0 mx-auto w-full max-w-6xl items-center justify-between px-5 transition-opacity duration-300 ${isSticky ? "opacity-0" : "opacity-100"}`}
           aria-label="Main navigation"
         >
           {navContent}

@@ -41,8 +41,8 @@ const FAQS = [
     a: "Please reach out to the organizing team using the contact details in the Contact section below. We are happy to assist.",
   },
   {
-    q: "Will there be transport from Accra?",
-    a: "Transport arrangements are being planned. Details will be announced through our WhatsApp broadcast group and on this page as the event approaches.",
+    q: "Will there be transport available?",
+    a: "Yes! Transport arrangements are being planned across the regions of the country. If you are interested in transport to the camp meeting, please contact the organizers using the details in the Contact section below and they will assist you.",
   },
 ];
 

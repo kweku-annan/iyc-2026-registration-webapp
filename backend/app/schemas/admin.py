@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -30,8 +30,8 @@ class AdminRegistrationResponse(BaseModel):
     first_name: str
     last_name: str
     other_names: str | None
-    date_of_birth: date
-    age: int
+    date_of_birth: str
+    age: int | None
     profession: str
     student_status: bool
     school_name: str | None

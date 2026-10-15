@@ -100,7 +100,29 @@ const detailsSchema = z.object({
     .max(150, "First name is too long"),
   last_name: z.string().min(2, "Last name must be at least 2 characters").max(150),
   other_names: z.string().max(150).optional(),
-  date_of_birth: z.string().min(1, "Date of birth is required"),
+  // Date of birth split into three fields: day and month are required, year is optional
+  dob_day: z
+    .string()
+    .min(1, "Day is required")
+    .refine((v) => {
+      const n = parseInt(v, 10);
+      return !isNaN(n) && n >= 1 && n <= 31;
+    }, "Day must be between 1 and 31"),
+  dob_month: z
+    .string()
+    .min(1, "Month is required")
+    .refine((v) => {
+      const n = parseInt(v, 10);
+      return !isNaN(n) && n >= 1 && n <= 12;
+    }, "Month must be between 1 and 12"),
+  dob_year: z
+    .string()
+    .optional()
+    .refine((v) => {
+      if (!v || v.trim() === "") return true;
+      const n = parseInt(v, 10);
+      return !isNaN(n) && n >= 1900 && n <= new Date().getFullYear();
+    }, "Please enter a valid year"),
   profession: z.string().min(2, "Profession must be at least 2 characters").max(150),
   student_status: z.enum(["yes", "no"], { required_error: "Please select an option" }),
   school_name: z.string().max(150).optional(),
@@ -170,11 +192,18 @@ export function RegisterPage() {
     }
 
     try {
+      // Assemble date_of_birth: if year is provided use YYYY-MM-DD, else MM-DD (partial)
+      const day = data.dob_day.padStart(2, "0");
+      const month = data.dob_month.padStart(2, "0");
+      const dateOfBirth = data.dob_year && data.dob_year.trim() !== ""
+        ? `${data.dob_year}-${month}-${day}`
+        : `${month}-${day}`;
+
       const result = await createReg.mutateAsync({
         first_name: data.first_name,
         last_name: data.last_name,
         other_names: data.other_names || null,
-        date_of_birth: data.date_of_birth,
+        date_of_birth: dateOfBirth,
         profession: data.profession,
         student_status: data.student_status === "yes",
         school_name: data.school_name || null,
@@ -422,8 +451,48 @@ export function RegisterPage() {
                 <Input id="other-names" type="text" placeholder="Optional" error={!!errors.other_names} {...register("other_names")} />
               </FormField>
 
-              <FormField label="Date of Birth" htmlFor="date-of-birth" required error={errors.date_of_birth?.message}>
-                <Input id="date-of-birth" type="date" error={!!errors.date_of_birth} {...register("date_of_birth")} />
+              <FormField label="Date of Birth" htmlFor="dob-day" required error={errors.dob_day?.message || errors.dob_month?.message || errors.dob_year?.message}>
+                <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Day and month are required. Year is optional.
+                </p>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Input
+                      id="dob-day"
+                      type="number"
+                      placeholder="Day"
+                      min={1}
+                      max={31}
+                      error={!!errors.dob_day}
+                      {...register("dob_day")}
+                    />
+                    <span className="block text-xs mt-1 text-center" style={{ color: "rgba(255,255,255,0.5)" }}>Day *</span>
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      id="dob-month"
+                      type="number"
+                      placeholder="Month"
+                      min={1}
+                      max={12}
+                      error={!!errors.dob_month}
+                      {...register("dob_month")}
+                    />
+                    <span className="block text-xs mt-1 text-center" style={{ color: "rgba(255,255,255,0.5)" }}>Month *</span>
+                  </div>
+                  <div className="flex-[1.5]">
+                    <Input
+                      id="dob-year"
+                      type="number"
+                      placeholder="Year (optional)"
+                      min={1900}
+                      max={new Date().getFullYear()}
+                      error={!!errors.dob_year}
+                      {...register("dob_year")}
+                    />
+                    <span className="block text-xs mt-1 text-center" style={{ color: "rgba(255,255,255,0.5)" }}>Year</span>
+                  </div>
+                </div>
               </FormField>
 
               <FormField label="Profession" htmlFor="profession" required error={errors.profession?.message}>

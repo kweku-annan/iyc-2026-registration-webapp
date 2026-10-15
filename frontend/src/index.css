@@ -95,3 +95,29 @@ img, svg, video {
   background: var(--color-highlight);
   border-radius: 999px;
 }
+
+/* ── Donate button — extra prominence on mobile ─────────── */
+/* On mobile: filled, glowing so visitors never miss it      */
+.donate-nav-btn {
+  background: var(--color-ice) !important;
+  color: var(--color-primary) !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 18px rgba(216,245,249,0.45), 0 2px 8px rgba(0,0,0,0.25) !important;
+  animation: donate-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes donate-pulse {
+  0%, 100% { box-shadow: 0 0 18px rgba(216,245,249,0.45), 0 2px 8px rgba(0,0,0,0.25); }
+  50%       { box-shadow: 0 0 28px rgba(216,245,249,0.7),  0 2px 12px rgba(0,0,0,0.3); }
+}
+
+/* On sm (640px+) screens: revert to the subtle outline style */
+@media (min-width: 640px) {
+  .donate-nav-btn {
+    background: rgba(103,163,177,0.1) !important;
+    color: var(--color-ice) !important;
+    border-color: rgba(103,163,177,0.5) !important;
+    box-shadow: none !important;
+    animation: none !important;
+  }
+}

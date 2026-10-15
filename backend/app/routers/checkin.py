@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 import secrets
 
 import phonenumbers
@@ -142,8 +142,13 @@ def walk_in_registration(
     return reg
 
 
-def calculate_age(date_of_birth: date) -> int:
+def calculate_age(date_of_birth: str) -> int | None:
+    """Calculate age from a date string (YYYY-MM-DD or MM-DD)."""
+    parts = date_of_birth.split("-")
+    if len(parts) == 2:
+        return None  # Year not provided
+    year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
     today = datetime.now(timezone.utc).date()
-    return today.year - date_of_birth.year - (
-        (today.month, today.day) < (date_of_birth.month, date_of_birth.day)
+    return today.year - year - (
+        (today.month, today.day) < (month, day)
     )

@@ -6,7 +6,6 @@ import csv
 import io
 import os
 import uuid
-from datetime import date
 from typing import IO, Any
 
 from fastapi import APIRouter, Depends, Query, UploadFile, File
@@ -255,8 +254,8 @@ def anonymize_registration(
     reg.first_name = "Anonymized"
     reg.last_name = "User"
     reg.other_names = None
-    reg.date_of_birth = date(1900, 1, 1)
-    reg.age = 0
+    reg.date_of_birth = "01-01"  # Anonymized — year intentionally omitted
+    reg.age = None
     reg.profession = "Anonymized"
     reg.student_status = False
     reg.school_name = None

@@ -5,9 +5,9 @@ Email is optional — collected for communication but not required or verified.
 
 from __future__ import annotations
 
-from datetime import datetime, date
+from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, func, Date, Integer
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, func, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -20,8 +20,8 @@ class Registration(Base):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     other_names: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
-    age: Mapped[int] = mapped_column(Integer, nullable=False)  # calculated at registration time
+    date_of_birth: Mapped[str] = mapped_column(String(10), nullable=False)
+    age: Mapped[int | None] = mapped_column(Integer, nullable=True)  # calculated at registration time; None if year was not provided
     profession: Mapped[str] = mapped_column(String(100), nullable=False)
     student_status: Mapped[bool] = mapped_column(Boolean, nullable=False)
     school_name: Mapped[str | None] = mapped_column(String(255), nullable=True)

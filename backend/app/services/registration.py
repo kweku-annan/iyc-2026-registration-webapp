@@ -1,7 +1,7 @@
 # Service for creating registrations, including phone normalization and validation.
 from __future__ import annotations
 
-from datetime import UTC, datetime, date
+from datetime import UTC, datetime
 from typing import Literal
 
 from fastapi import Request
@@ -100,8 +100,19 @@ def create_registration(
 
 
 
-def calculate_age(date_of_birth: date) -> int:
-    """Calculate age based on date of birth."""
+def calculate_age(date_of_birth: str) -> int | None:
+    """Calculate age from a date string.
+
+    Accepts:
+      - ``YYYY-MM-DD`` — full date; returns integer age.
+      - ``MM-DD``      — partial date (year omitted); returns None.
+    """
+    parts = date_of_birth.split("-")
+    if len(parts) == 2:
+        # Only MM-DD provided — cannot calculate age
+        return None
+    # Full date: YYYY-MM-DD
+    year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
     today = datetime.now(UTC).date()
-    age = today.year - date_of_birth.year - ((today.month, today.day) < (date_of_birth.month, date_of_birth.day))
+    age = today.year - year - ((today.month, today.day) < (month, day))
     return age
