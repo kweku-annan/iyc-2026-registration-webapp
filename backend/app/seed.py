@@ -22,7 +22,10 @@ import shutil
 from datetime import UTC, datetime
 
 from argon2 import PasswordHasher
+from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError
+
+load_dotenv()
 
 from app.core.database import SessionLocal
 from app.models.gallery import GalleryPhoto
