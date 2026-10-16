@@ -32,6 +32,7 @@ from app.routers.testimonials import router as testimonials_router
 from app.routers.donations import router as donations_router
 from app.routers.webhooks import router as webhooks_router
 from app.routers.checkin import router as checkin_router
+from app.routers.gallery import router as gallery_router, admin_router as admin_gallery_router
 
 _is_production = settings.environment.lower() == "production"
 
@@ -47,8 +48,16 @@ app = FastAPI(
 )
 
 # Ensure uploads directory exists and mount it
-os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UPLOAD_DIR = os.environ.get("UPLOAD_DIR", os.path.join(BACKEND_DIR, "uploads"))
+GALLERY_THUMBS_DIR = os.path.join(UPLOAD_DIR, "gallery", "thumbs")
+GALLERY_FULL_DIR = os.path.join(UPLOAD_DIR, "gallery", "full")
+os.makedirs(GALLERY_THUMBS_DIR, exist_ok=True)
+os.makedirs(GALLERY_FULL_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+# Also mount /gallery/thumbs and /gallery/full so legacy or direct image links never 404
+app.mount("/gallery/thumbs", StaticFiles(directory=GALLERY_THUMBS_DIR), name="gallery-thumbs")
+app.mount("/gallery/full", StaticFiles(directory=GALLERY_FULL_DIR), name="gallery-full")
 
 # ── Global exception handler ──────────────────────────────────────────────────
 
@@ -100,4 +109,6 @@ app.include_router(testimonials_router)
 app.include_router(donations_router)
 app.include_router(webhooks_router)
 app.include_router(checkin_router)
+app.include_router(gallery_router)
+app.include_router(admin_gallery_router)
 

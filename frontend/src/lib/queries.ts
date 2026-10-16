@@ -673,3 +673,118 @@ export function useWalkInRegistration(csrfToken: string) {
       }),
   });
 }
+
+// ── Admin Gallery Hooks ──────────────────────────────────────────────────────
+
+export interface AdminGalleryPhoto {
+  id: number;
+  slug: string;
+  title: string;
+  caption: string | null;
+  category: string;
+  year: number;
+  thumb_url: string;
+  full_url: string;
+  width: number;
+  height: number;
+  alt_text: string | null;
+  is_visible: boolean;
+  sort_order: number;
+  created_at: string;
+  thumb: string;
+  full: string;
+  alt: string;
+}
+
+export interface GalleryPhotoUpdatePayload {
+  title?: string;
+  caption?: string;
+  category?: string;
+  year?: number;
+  alt_text?: string;
+  is_visible?: boolean;
+  sort_order?: number;
+}
+
+export function useAdminGalleryPhotos(
+  csrfToken?: string,
+  params?: { category?: string; is_visible?: boolean; search?: string }
+) {
+  return useQuery<AdminGalleryPhoto[]>({
+    queryKey: ["admin", "gallery", params],
+    queryFn: () => {
+      const searchParams = new URLSearchParams();
+      if (params?.category && params.category !== "All") searchParams.set("category", params.category);
+      if (params?.is_visible !== undefined) searchParams.set("is_visible", String(params.is_visible));
+      if (params?.search) searchParams.set("search", params.search);
+
+      const qs = searchParams.toString();
+      const url = `${import.meta.env.VITE_API_URL ?? "http://localhost:8000"}/admin/gallery${qs ? `?${qs}` : ""}`;
+      return fetch(url, {
+        credentials: "include",
+        headers: { "X-CSRF-Token": csrfToken ?? "" },
+      }).then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new HttpError(res.status, body);
+        }
+        return res.json();
+      });
+    },
+    enabled: !!csrfToken,
+  });
+}
+
+export function useUploadGalleryPhoto(csrfToken?: string) {
+  return useMutation({
+    mutationFn: (formData: FormData) =>
+      fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:8000"}/admin/gallery/upload`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "X-CSRF-Token": csrfToken ?? "" },
+        body: formData,
+      }).then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new HttpError(res.status, body);
+        }
+        return res.json() as Promise<AdminGalleryPhoto>;
+      }),
+  });
+}
+
+export function useUpdateGalleryPhoto(csrfToken?: string) {
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: GalleryPhotoUpdatePayload }) =>
+      fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:8000"}/admin/gallery/${id}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "X-CSRF-Token": csrfToken ?? "", "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new HttpError(res.status, body);
+        }
+        return res.json() as Promise<AdminGalleryPhoto>;
+      }),
+  });
+}
+
+export function useDeleteGalleryPhoto(csrfToken?: string) {
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:8000"}/admin/gallery/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "X-CSRF-Token": csrfToken ?? "" },
+      }).then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new HttpError(res.status, body);
+        }
+        return res.json();
+      }),
+  });
+}
+

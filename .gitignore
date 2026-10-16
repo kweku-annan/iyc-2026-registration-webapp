@@ -46,3 +46,7 @@ Thumbs.db
 *.swo
 
 *.db
+
+scripts/*
+uploads/*
+!uploads/.gitkeep

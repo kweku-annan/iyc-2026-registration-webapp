@@ -502,7 +502,9 @@ def upload_image(file: UploadFile = File(...)):
     # 3. Derive a safe extension from the validated content-type.
     ext = _CONTENT_TYPE_TO_EXT.get(content_type, "jpg")
     filename = f"{uuid.uuid4().hex}.{ext}"
-    filepath = os.path.join("uploads", filename)
+    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    upload_dir = os.environ.get("UPLOAD_DIR", os.path.join(backend_dir, "uploads"))
+    filepath = os.path.join(upload_dir, filename)
 
     # 4. Write to disk.
     with open(filepath, "wb") as buffer:

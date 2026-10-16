@@ -12,7 +12,7 @@ import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { AdminAuthProvider, useAdminAuth } from "../../lib/adminAuth";
 
-import { LayoutDashboard, Users, MessageSquare, Settings, LogOut, Briefcase } from "lucide-react";
+import { LayoutDashboard, Users, MessageSquare, Settings, LogOut, Briefcase, Images } from "lucide-react";
 
 const DARK = "#0a1a20";
 const SIDEBAR_BG = "#0d2129";
@@ -23,6 +23,7 @@ const NAV_LINKS = [
   { to: "/admin/registrations", label: "Registrants", icon: <Users size={18} /> },
   { to: "/admin/testimonials", label: "Testimonials", icon: <MessageSquare size={18} /> },
   { to: "/admin/partners", label: "Partners", icon: <Briefcase size={18} /> },
+  { to: "/admin/gallery", label: "Gallery", icon: <Images size={18} /> },
   { to: "/admin/settings", label: "Settings", icon: <Settings size={18} /> },
 ];
 

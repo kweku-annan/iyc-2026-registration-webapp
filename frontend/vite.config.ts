@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     tailwindcss(), // Tailwind v4 Vite plugin — no separate postcss config needed
   ],
+  server: {
+    proxy: {
+      "/uploads": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+    },
+  },
 });
+

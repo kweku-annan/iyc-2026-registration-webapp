@@ -21,6 +21,7 @@ import { AdminTestimonialsPage } from "./pages/admin/AdminTestimonialsPage";
 import { AdminPartnersPage } from "./pages/admin/AdminPartnersPage";
 import { AdminDonationsPage } from "./pages/admin/AdminDonationsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import { AdminGalleryPage } from "./pages/admin/AdminGalleryPage";
 
 /**
  * All routes from spec section 9.
@@ -110,6 +111,10 @@ export const router = createBrowserRouter([
       {
         path: "partners",
         element: <AdminPartnersPage />,
+      },
+      {
+        path: "gallery",
+        element: <AdminGalleryPage />,
       },
       {
         path: "donations",
