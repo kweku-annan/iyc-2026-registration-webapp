@@ -96,35 +96,27 @@ def seed_organizer(db) -> None:
 def seed_gallery(db) -> None:
     # 1. Determine base directories and ensure upload folder exists
     backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    repo_dir = os.path.dirname(backend_dir)
     upload_dir = os.environ.get("UPLOAD_DIR", os.path.join(backend_dir, "uploads"))
     thumbs_dest = os.path.join(upload_dir, "gallery", "thumbs")
     full_dest = os.path.join(upload_dir, "gallery", "full")
     os.makedirs(thumbs_dest, exist_ok=True)
     os.makedirs(full_dest, exist_ok=True)
 
-    # 2. Look for seed manifest in backend seed_data or frontend public gallery
-    backend_seed = os.path.join(os.path.dirname(__file__), "seed_data", "gallery.json")
-    repo_seed = os.path.join(repo_dir, "frontend", "public", "gallery", "gallery.json")
-    manifest_path = backend_seed if os.path.exists(backend_seed) else repo_seed
+    # 2. Seed manifest from backend seed_data
+    manifest_path = os.path.join(os.path.dirname(__file__), "seed_data", "gallery.json")
 
-    # 3. Synchronize WebP files from seed_data, frontend/public/gallery, or repo uploads into backend uploads if missing
-    candidate_sources = [
-        os.path.join(os.path.dirname(__file__), "seed_data", "gallery"),
-        os.path.join(repo_dir, "frontend", "public", "gallery"),
-        os.path.join(repo_dir, "uploads", "gallery"),
-    ]
-    for src_root in candidate_sources:
-        if os.path.exists(src_root):
-            for sub in ("thumbs", "full"):
-                src_sub = os.path.join(src_root, sub)
-                dst_sub = os.path.join(upload_dir, "gallery", sub)
-                if os.path.exists(src_sub):
-                    for fname in os.listdir(src_sub):
-                        if fname.endswith(".webp"):
-                            dst_file = os.path.join(dst_sub, fname)
-                            if not os.path.exists(dst_file):
-                                shutil.copy2(os.path.join(src_sub, fname), dst_file)
+    # 3. Synchronize WebP files from backend seed_data/gallery into runtime uploads if missing
+    seed_gallery_dir = os.path.join(os.path.dirname(__file__), "seed_data", "gallery")
+    if os.path.exists(seed_gallery_dir):
+        for sub in ("thumbs", "full"):
+            src_sub = os.path.join(seed_gallery_dir, sub)
+            dst_sub = os.path.join(upload_dir, "gallery", sub)
+            if os.path.exists(src_sub):
+                for fname in os.listdir(src_sub):
+                    if fname.endswith(".webp"):
+                        dst_file = os.path.join(dst_sub, fname)
+                        if not os.path.exists(dst_file):
+                            shutil.copy2(os.path.join(src_sub, fname), dst_file)
 
     # 4. Seed database records
     if not os.path.exists(manifest_path):
