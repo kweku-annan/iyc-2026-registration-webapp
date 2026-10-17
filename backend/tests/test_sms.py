@@ -40,6 +40,11 @@ def db() -> Session:
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
+@pytest.fixture(autouse=True)
+def default_sms_provider(monkeypatch):
+    monkeypatch.setattr(settings, "sms_provider", "console")
+
+
 def test_get_sms_provider_console_default():
     # By default in test/dev env, sms_provider is "console"
     provider = get_sms_provider()

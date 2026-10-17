@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from datetime import date
 from app.core.database import get_db
 from app.main import app
 from app.models.base import Base
@@ -72,7 +73,8 @@ def test_lookup_registration(client: TestClient, db: Session):
 
     res = client.get("/checkin/lookup/TESTCODE", headers={"X-CSRF-Token": headers["X-CSRF-Token"]})
     assert res.status_code == 200
-    assert res.json()["full_name"] == "John Doe"
+    assert res.json()["first_name"] == "John"
+    assert res.json()["last_name"] == "Doe"
 
 def test_search_registration(client: TestClient, db: Session):
     headers = get_auth_headers(db, "vol@test.com")
@@ -101,7 +103,8 @@ def test_search_registration(client: TestClient, db: Session):
     res = client.get("/checkin/search?q=John", headers={"X-CSRF-Token": headers["X-CSRF-Token"]})
     assert res.status_code == 200
     assert len(res.json()) >= 1
-    assert res.json()[0]["full_name"] == "John Doe"
+    assert res.json()[0]["first_name"] == "John"
+    assert res.json()[0]["last_name"] == "Doe"
 
 def test_confirm_checkin(client: TestClient, db: Session):
     headers = get_auth_headers(db, "vol@test.com")
@@ -157,7 +160,8 @@ def test_walk_in(client: TestClient, db: Session):
     res = client.post("/checkin/walk-in", json=payload, headers={"X-CSRF-Token": headers["X-CSRF-Token"]})
     assert res.status_code == 200
     data = res.json()
-    assert data["full_name"] == "Walkin User"
+    assert data["first_name"] == "John"
+    assert data["last_name"] == "Doe"
     assert data["source"] == "walk_in"
     assert data["checked_in_at"] is not None
 

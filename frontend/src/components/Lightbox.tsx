@@ -17,7 +17,9 @@ import {
   useRef,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { X, ChevronLeft, ChevronRight, Tag } from "lucide-react";
+import { createPortal } from "react-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { X, ChevronLeft, ChevronRight, Tag, Home } from "lucide-react";
 import type { GalleryItem } from "../lib/gallery";
 
 interface LightboxProps {
@@ -36,6 +38,8 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const swipeStartX = useRef<number | null>(null);
   const thumbStripRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const prev = useCallback(
     () => onNavigate((index - 1 + items.length) % items.length),
@@ -45,6 +49,15 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
     () => onNavigate((index + 1) % items.length),
     [index, items.length, onNavigate],
   );
+
+  const handleHome = useCallback(() => {
+    onClose();
+    if (pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/");
+    }
+  }, [onClose, navigate, pathname]);
 
   // Preload adjacent images for fast transitions
   useEffect(() => {
@@ -68,6 +81,15 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose, prev, next]);
+
+  // Browser back / popstate listener
+  useEffect(() => {
+    const handlePopState = () => {
+      onClose();
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [onClose]);
 
   // Lock body scroll
   useEffect(() => {
@@ -107,15 +129,15 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
 
   if (!item) return null;
 
-  return (
+  const content = (
     <div
       id="lightbox-overlay"
       role="dialog"
       aria-modal="true"
       aria-label={`Photo: ${item.title}`}
-      className="fixed inset-0 z-50 flex flex-col justify-between select-none"
+      className="fixed inset-0 z-[100] flex flex-col justify-between select-none"
       style={{
-        background: "rgba(4, 14, 20, 0.94)",
+        background: "rgba(4, 14, 20, 0.96)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         animation: REDUCED ? "none" : "lb-fade 0.25s ease both",
@@ -142,21 +164,39 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
 
       {/* ── Top Bar ────────────────────────────────────────── */}
       <header
-        className="relative z-20 flex items-center justify-between px-4 sm:px-8 py-4 shrink-0"
+        className="relative z-30 flex items-center justify-between px-3 sm:px-6 py-3.5 shrink-0"
         style={{
-          borderBottom: "1px solid rgba(103,163,177,0.15)",
-          background: "linear-gradient(to bottom, rgba(4,14,20,0.8) 0%, transparent 100%)",
+          borderBottom: "1px solid rgba(103,163,177,0.18)",
+          background: "linear-gradient(to bottom, rgba(4,14,20,0.92) 0%, rgba(4,14,20,0.6) 100%)",
+          backdropFilter: "blur(12px)",
         }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Left: Category Badge */}
-        <div className="flex items-center gap-2">
+        {/* Left: Home Button & Category Badge */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            id="lightbox-home-btn"
+            aria-label="Return to Home"
+            onClick={handleHome}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-sans font-semibold transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+            style={{
+              background: "rgba(255, 255, 255, 0.12)",
+              border: "1px solid rgba(103, 163, 177, 0.4)",
+              color: "var(--color-ice)",
+            }}
+          >
+            <Home size={14} className="text-[var(--color-ice)]" />
+            <span>Home</span>
+          </button>
+
           {item.category && (
             <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-sans tracking-wide"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-sans tracking-wide"
               style={{
-                background: "rgba(103,163,177,0.2)",
-                color: "var(--color-ice)",
-                border: "1px solid rgba(216,245,249,0.25)",
+                background: "rgba(103,163,177,0.18)",
+                color: "rgba(216,245,249,0.85)",
+                border: "1px solid rgba(216,245,249,0.2)",
               }}
             >
               <Tag size={12} className="opacity-80" />
@@ -167,50 +207,59 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
 
         {/* Center: Counter */}
         <div
-          className="font-sans text-xs tracking-widest uppercase"
-          style={{ color: "rgba(216,245,249,0.6)" }}
+          className="font-sans text-xs tracking-widest uppercase font-medium"
+          style={{ color: "rgba(216,245,249,0.7)" }}
           aria-live="polite"
           aria-atomic="true"
         >
-          {index + 1} <span style={{ color: "rgba(255,255,255,0.25)" }}>/</span> {items.length}
+          {index + 1} <span style={{ color: "rgba(255,255,255,0.3)" }}>/</span> {items.length}
         </div>
 
         {/* Right: Close button */}
         <button
           ref={closeRef}
           id="lightbox-close-btn"
-          aria-label="Close lightbox"
+          type="button"
+          aria-label="Close fullscreen image"
           onClick={onClose}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+          className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full text-xs font-sans font-semibold transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
           style={{
-            background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.2)",
+            background: "rgba(255, 255, 255, 0.12)",
+            border: "1px solid rgba(255, 255, 255, 0.25)",
             color: "var(--color-ice)",
-            cursor: "pointer",
           }}
         >
-          <X size={20} />
+          <X size={15} />
+          <span>Close</span>
+          <kbd className="hidden sm:inline text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-white/60 font-mono tracking-tighter">
+            ESC
+          </kbd>
         </button>
       </header>
 
       {/* ── Main Viewport (Image + Navigation) ─────────────── */}
-      <div className="relative flex-1 flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div
+        id="lightbox-backdrop-area"
+        className="relative flex-1 flex items-center justify-center p-3 sm:p-6 overflow-hidden cursor-zoom-out"
+        onClick={onClose}
+      >
         {/* Prev Arrow (desktop / tablet) */}
         {items.length > 1 && (
           <button
             id="lightbox-prev-btn"
+            type="button"
             aria-label="Previous photo"
             onClick={(e) => {
               e.stopPropagation();
               prev();
             }}
-            className="hidden sm:flex absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 z-20"
+            className="hidden sm:flex absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 z-20 cursor-pointer"
             style={{
-              background: "rgba(6,19,26,0.65)",
-              border: "1px solid rgba(103,163,177,0.3)",
+              background: "rgba(6,19,26,0.75)",
+              border: "1px solid rgba(103,163,177,0.35)",
               color: "var(--color-ice)",
               backdropFilter: "blur(8px)",
-              cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
             }}
           >
             <ChevronLeft size={24} />
@@ -219,7 +268,7 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
 
         {/* The Image Display */}
         <div
-          className="relative flex flex-col items-center justify-center max-h-full max-w-full"
+          className="relative flex flex-col items-center justify-center max-h-full max-w-full cursor-default"
           onClick={(e) => e.stopPropagation()}
         >
           <img
@@ -257,18 +306,19 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
         {items.length > 1 && (
           <button
             id="lightbox-next-btn"
+            type="button"
             aria-label="Next photo"
             onClick={(e) => {
               e.stopPropagation();
               next();
             }}
-            className="hidden sm:flex absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 z-20"
+            className="hidden sm:flex absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 z-20 cursor-pointer"
             style={{
-              background: "rgba(6,19,26,0.65)",
-              border: "1px solid rgba(103,163,177,0.3)",
+              background: "rgba(6,19,26,0.75)",
+              border: "1px solid rgba(103,163,177,0.35)",
               color: "var(--color-ice)",
               backdropFilter: "blur(8px)",
-              cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
             }}
           >
             <ChevronRight size={24} />
@@ -281,8 +331,9 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
         className="relative z-20 px-4 py-3 shrink-0"
         style={{
           borderTop: "1px solid rgba(103,163,177,0.15)",
-          background: "linear-gradient(to top, rgba(4,14,20,0.9) 0%, transparent 100%)",
+          background: "linear-gradient(to top, rgba(4,14,20,0.95) 0%, transparent 100%)",
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div
           ref={thumbStripRef}
@@ -321,4 +372,8 @@ export function Lightbox({ items, index, onClose, onNavigate }: LightboxProps) {
       </footer>
     </div>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(content, document.body)
+    : content;
 }

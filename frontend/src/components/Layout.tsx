@@ -52,6 +52,11 @@ export function Layout({ children }: LayoutProps) {
       <Link
         to="/"
         id="nav-logo"
+        onClick={() => {
+          if (pathname === "/") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }}
         className="flex items-center gap-2.5 no-underline"
         aria-label="IYC Camp Meeting 2026 — Home"
       >

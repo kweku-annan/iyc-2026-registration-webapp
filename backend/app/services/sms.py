@@ -44,6 +44,7 @@ class ConsoleSmsProvider(SmsProvider):
             to_e164,
             message,
         )
+        print(f"[CONSOLE SMS] To: {to_e164} | Message: {message}")
         return SmsResult(
             status="sent",
             provider_response=json.dumps({"console": True, "delivered": True, "message": message})

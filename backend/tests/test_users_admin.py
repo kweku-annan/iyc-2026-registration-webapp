@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from datetime import date
 from app.core.database import get_db
 from app.core.security import generate_csrf_token, create_signed_session_token, verify_password, hash_password
 from app.main import app
