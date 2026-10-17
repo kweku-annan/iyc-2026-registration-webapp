@@ -45,6 +45,7 @@ Thumbs.db
 *.swp
 *.swo
 
+----db----
 *.db
 *.dump
 db-backups/
