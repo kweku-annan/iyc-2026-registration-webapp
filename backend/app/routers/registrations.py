@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.rate_limit import get_client_ip
 from app.models.settings import Settings
 from app.schemas.otp import OtpSendRequest, OtpVerifyRequest, OtpVerifyResponse
 from app.schemas.registration import RegistrationCreate, RegistrationStatusResponse
@@ -46,7 +47,7 @@ def request_otp(
 
     Does not reveal if the phone is already registered.
     """
-    ip_address = request.client.host if request.client else "unknown"
+    ip_address = get_client_ip(request)
     phone_e164 = normalize_phone(payload.phone)
     result = send_otp(db, phone_e164, ip_address)
     return {

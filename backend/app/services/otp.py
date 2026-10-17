@@ -34,17 +34,10 @@ OTP_COOLDOWN_SECONDS = 60
 OTP_MAX_ATTEMPTS = 3
 OTP_MAX_PER_PHONE_PER_DAY = 3
 
-# Simple in-memory IP rate limit: 5 requests per IP per 5 minutes.
-IP_RATE_LIMIT_MAX = 5
-IP_RATE_LIMIT_WINDOW_SECONDS = 300
+from app.core.rate_limit import check_ip_rate_limit, ip_rate_limiter
 
-# NOTE: This is an in-memory rate limiter. It works correctly for single-process
-# deployments (e.g. a single Railway container). If you scale to multiple workers
-# or instances, replace this with a shared store (e.g. Redis) so limits are
-# enforced across all processes.
-
-# Tracker format: IP -> list of timestamps
-_ip_tracker: dict[str, list[float]] = defaultdict(list)
+# Alias for backward-compatibility with tests that clear the tracker
+_ip_tracker = ip_rate_limiter._storage
 
 # Use argon2 for secure hashing
 ph = PasswordHasher()
@@ -64,19 +57,10 @@ def ensure_utc(dt: datetime) -> datetime:
 
 
 def _check_ip_rate_limit(ip_address: str) -> None:
-    """Enforce IP rate limit (in-memory)."""
-    now = time.time()
+    """Enforce IP rate limit using centralized sliding window limiter."""
+    check_ip_rate_limit(ip_address)
 
-    # Filter timestamps within the window
-    _ip_tracker[ip_address] = [
-        t for t in _ip_tracker[ip_address]
-        if now - t < IP_RATE_LIMIT_WINDOW_SECONDS
-    ]
 
-    if len(_ip_tracker[ip_address]) >= IP_RATE_LIMIT_MAX:
-        raise RateLimitError("Too many requests from this IP. Please try again later.")
-
-    _ip_tracker[ip_address].append(now)
 
 
 def send_otp(db: Session, phone_e164: str, ip_address: str) -> OtpSendResult:

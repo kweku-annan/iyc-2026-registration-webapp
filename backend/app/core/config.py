@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     # OTP
     otp_enabled: bool = True
 
+    # Cloudflare Turnstile bot protection (optional in dev, active when enabled)
+    turnstile_secret_key: str = ""
+    turnstile_enabled: bool = False
+    turnstile_hostnames: str = ""
+
     # Locale
     default_phone_region: str = "GH"
     event_timezone: str = "Africa/Accra"

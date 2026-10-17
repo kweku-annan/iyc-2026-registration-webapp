@@ -9,14 +9,14 @@
  * Handles: registration closed, duplicate phone, rate-limited, offline, server errors.
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { Layout, Button, Input, FormField } from "../components";
+import { Layout, Button, Input, FormField, Turnstile, type TurnstileHandle } from "../components";
 import {
   useRegistrationStatus,
   useCreateRegistration,
@@ -163,6 +163,8 @@ export function RegisterPage() {
   const [isExistingRegistration, setIsExistingRegistration] = useState(false);
   const [submitError, setSubmitError] = useState<string>("");
   const [isDone, setIsDone] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   const createReg = useCreateRegistration();
 
@@ -191,6 +193,12 @@ export function RegisterPage() {
       return;
     }
 
+    const hasTurnstileKey = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
+    if (hasTurnstileKey && turnstileToken === null) {
+      setSubmitError("Please complete the security check before submitting.");
+      return;
+    }
+
     try {
       // Assemble date_of_birth: if year is provided use YYYY-MM-DD, else MM-DD (partial)
       const day = data.dob_day.padStart(2, "0");
@@ -216,12 +224,16 @@ export function RegisterPage() {
         church: data.church,
         attended_before: data.attended_before === "yes",
         website: "",
+        turnstile_token: turnstileToken,
       });
 
       setIsExistingRegistration(result.already_registered);
       setIsDone(true);
     } catch (err) {
       setSubmitError(extractError(err));
+      // Reset single-use Turnstile token and widget on error so user can retry
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
     }
   }
 
@@ -628,6 +640,24 @@ export function RegisterPage() {
                 tabIndex={-1}
                 aria-hidden="true"
                 style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
+              />
+
+              {/* Anti-bot security check (active if site key is configured) */}
+              <Turnstile
+                ref={turnstileRef}
+                action="registration"
+                onVerify={(token) => {
+                  setTurnstileToken(token);
+                  setSubmitError("");
+                }}
+                onExpire={() => {
+                  setTurnstileToken(null);
+                  turnstileRef.current?.reset();
+                }}
+                onError={() => {
+                  setTurnstileToken(null);
+                  turnstileRef.current?.reset();
+                }}
               />
 
               {submitError && <ErrorBanner message={submitError} />}

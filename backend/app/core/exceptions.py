@@ -34,5 +34,7 @@ class TicketValidationError(AppError):
 class RateLimitError(AppError):
     """Raised when a user or IP hits a rate limit."""
 
-    def __init__(self, detail: str = "Too many requests.") -> None:
+    def __init__(self, detail: str = "Too many requests.", retry_after: int = 60) -> None:
         super().__init__(detail=detail, code="rate_limited", status_code=429)
+        self.retry_after = retry_after
+

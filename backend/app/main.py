@@ -66,7 +66,7 @@ async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
     # RFC 7231: include Retry-After on 429 responses so clients/monitoring
     # know when they may retry (60 seconds is a safe conservative default).
     if isinstance(exc, RateLimitError):
-        headers["Retry-After"] = "60"
+        headers["Retry-After"] = str(getattr(exc, "retry_after", 60))
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail, "code": exc.code},

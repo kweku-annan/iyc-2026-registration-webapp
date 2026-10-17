@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 
 class RegistrationStatusResponse(BaseModel):
@@ -46,6 +47,16 @@ class RegistrationCreate(BaseModel):
 
     # Honeypot field for bot protection (must be empty or omitted)
     website: str = Field("", description="Honeypot field for bots. Must be empty.")
+
+    # Cloudflare Turnstile token for bot verification (accepts both turnstile_token and cf-turnstile-response)
+    turnstile_token: str | None = Field(default=None, description="Cloudflare Turnstile token for bot protection")
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_turnstile_token(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "cf-turnstile-response" in data and "turnstile_token" not in data:
+            data["turnstile_token"] = data["cf-turnstile-response"]
+        return data
 
     # otp_token is intentionally omitted — OTP step is disconnected from the flow.
     # The service and endpoints still exist but are not called during registration.

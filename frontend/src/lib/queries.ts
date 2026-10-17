@@ -59,6 +59,7 @@ export interface RegistrationPayload {
   // otp_token intentionally omitted — OTP step is disconnected from the flow.
   // useSendOtp / useVerifyOtp hooks below still exist for future re-enablement.
   website: ""; // honeypot — always empty
+  turnstile_token?: string | null;
 }
 
 export interface OtpSendResponse {
