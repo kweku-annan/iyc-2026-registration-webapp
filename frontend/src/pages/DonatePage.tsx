@@ -18,13 +18,13 @@ import {
 import { Layout } from "../components";
 import { PartnersCarousel } from "../sections/PartnersCarousel";
 
-const MOMO_NUMBER_RAW = "+233530524274";
-const MOMO_NUMBER_DISPLAY = "+233 53 052 4274";
-const MOMO_NUMBER_LOCAL = "053 052 4274";
+const MOMO_NUMBER_RAW = "+233246570376";
+const MOMO_NUMBER_DISPLAY = "+233 24 657 0376";
+const MOMO_NUMBER_LOCAL = "024 657 0376";
 const MOMO_ACCOUNT_NAME = "Center for World Evangelism";
 const MOMO_REFERENCE = "IYC 2026";
 const WHATSAPP_LINK =
-  "https://wa.me/233530524274?text=Hello%20IYC%20Secretariat%2C%20I%20would%20like%20to%20support%20IYC%202026%20with%20a%20donation%20in%20cash%20or%20kindness.";
+  "https://wa.me/233246570376?text=Hello%20IYC%20Secretariat%2C%20I%20would%20like%20to%20support%20IYC%202026%20with%20a%20donation%20in%20cash%20or%20kindness.";
 
 export function DonatePage() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -355,7 +355,7 @@ export function DonatePage() {
                   Enter Number & Check
                 </h3>
                 <p className="text-xs text-white/65 leading-relaxed">
-                  Enter <span className="font-mono text-ice font-semibold">0530524274</span>. Confirm the recipient name displays as <strong className="text-white">Center for World Evangelism</strong>.
+                  Enter <span className="font-mono text-ice font-semibold">0246570376</span>. Confirm the recipient name displays as <strong className="text-white">Center for World Evangelism</strong>.
                 </p>
               </div>
 

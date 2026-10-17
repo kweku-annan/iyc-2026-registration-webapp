@@ -85,7 +85,7 @@ function DonateCard() {
         <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/10">
           <div className="font-mono text-xs sm:text-sm text-ice/90 flex items-center gap-2">
             <span className="text-white/50">MoMo:</span>
-            <span className="font-bold text-white">053 052 4274</span>
+            <span className="font-bold text-white">024 657 0376</span>
             <span className="text-white/40 hidden sm:inline">•</span>
             <span className="text-white/70 hidden sm:inline">Center for World Evangelism</span>
           </div>
