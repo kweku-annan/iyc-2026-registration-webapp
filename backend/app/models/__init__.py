@@ -1,7 +1,6 @@
 """Models package — import all models so Alembic can discover them via Base.metadata."""
 
 from app.models.base import Base
-from app.models.donation import Donation
 from app.models.gallery import GalleryPhoto
 from app.models.otp_code import OtpCode
 from app.models.partner import Partner
@@ -13,7 +12,6 @@ from app.models.user import User
 
 __all__ = [
     "Base",
-    "Donation",
     "GalleryPhoto",
     "OtpCode",
     "Partner",

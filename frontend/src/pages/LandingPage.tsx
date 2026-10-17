@@ -15,6 +15,7 @@
  */
 
 import { Link } from "react-router-dom";
+import { HeartHandshake, ArrowRight } from "lucide-react";
 import { Layout } from "../components";
 import { useRegistrationStatus } from "../lib/queries";
 import { HeroCarousel } from "../sections/HeroCarousel";
@@ -27,57 +28,83 @@ import { FaqSection } from "../sections/FaqSection";
 import { ContactSection } from "../sections/ContactSection";
 import { GallerySection } from "../sections/GallerySection";
 
-
-
-
-// ── Phase-2 placeholder card ──────────────────────────────────────────────────
-
-function DonateCard({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
+function DonateCard() {
   return (
-    <Link
-      to="/donate"
-      className="relative rounded-[2rem] p-8 flex flex-col gap-4 transition-all duration-300 hover:scale-[1.02] group overflow-hidden"
+    <div
+      className="relative rounded-3xl p-6 sm:p-8 backdrop-blur-xl border transition-all duration-300 hover:border-ice/40 group overflow-hidden max-w-2xl mx-auto w-full text-left"
       style={{
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(103,163,177,0.2)",
-        backdropFilter: "blur(16px)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(28,110,134,0.18) 100%)",
+        borderColor: "rgba(103,163,177,0.25)",
+        boxShadow: "0 12px 36px rgba(0,0,0,0.25)",
       }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
-      <div className="absolute -inset-1 bg-gradient-to-r from-[rgba(103,163,177,0.3)] to-[rgba(28,110,134,0.3)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
-      
-      <div className="relative z-10 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="text-4xl" aria-hidden="true">💝</span>
-          <span
-            className="text-xs font-sans font-bold px-4 py-1.5 rounded-full transition-colors"
+      {/* Ambient background glow */}
+      <div
+        className="absolute top-0 right-0 w-60 h-60 rounded-full filter blur-[70px] pointer-events-none opacity-20 group-hover:opacity-30 transition-opacity"
+        style={{ background: "#FFCC00" }}
+      />
+
+      <div className="relative z-10 flex flex-col gap-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center border shadow-inner shrink-0"
+              style={{
+                background: "rgba(216,245,249,0.1)",
+                borderColor: "rgba(103,163,177,0.3)",
+                color: "var(--color-ice)",
+              }}
+            >
+              <HeartHandshake size={24} />
+            </div>
+            <div>
+              <span className="font-serif text-2xl text-ice font-semibold block leading-tight">
+                Support IYC 2026
+              </span>
+              <span className="text-xs text-white/60 font-sans">
+                Freewill Giving & In-Kind Sponsorship
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 bg-black/30 border border-white/10 px-3 py-1.5 rounded-full text-xs">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ background: "#FFCC00" }}
+            />
+            <span className="text-white/80 font-medium">MTN MoMo Accepted</span>
+          </div>
+        </div>
+
+        <p className="text-sm sm:text-base leading-relaxed text-white/75 font-sans">
+          IYC Conferences are sponsored by generous individuals and partner churches.
+          We highly appreciate your donations in cash and kindness to keep the camp meeting
+          completely free for every young person.
+        </p>
+
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/10">
+          <div className="font-mono text-xs sm:text-sm text-ice/90 flex items-center gap-2">
+            <span className="text-white/50">MoMo:</span>
+            <span className="font-bold text-white">053 052 4274</span>
+            <span className="text-white/40 hidden sm:inline">•</span>
+            <span className="text-white/70 hidden sm:inline">Center for World Evangelism</span>
+          </div>
+
+          <Link
+            to="/donate"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 hover:scale-[1.03] group/btn cursor-pointer"
             style={{
               background: "var(--color-ice)",
               color: "var(--color-primary)",
-              boxShadow: "0 0 15px rgba(216,245,249,0.3)",
+              boxShadow: "0 0 20px rgba(216,245,249,0.3)",
             }}
           >
-            Donate Now
-          </span>
-        </div>
-        
-        <div>
-          <h3 className="font-serif text-2xl mb-2" style={{ color: "var(--color-ice)" }}>
-            {title}
-          </h3>
-          <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>
-            {description}
-          </p>
+            <span>Donate via MoMo</span>
+            <ArrowRight size={14} className="transition-transform group-hover/btn:translate-x-0.5" />
+          </Link>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -205,39 +232,35 @@ export function LandingPage() {
       <GallerySection />
 
       {/* ══════════════════════════════════════
-          10. PHASE-2 PLACEHOLDERS (testimonials, donations)
+          10. SUPPORT & GIVING
       ══════════════════════════════════════ */}
       <section
-        id="coming-soon"
-        className="py-16 px-5 pb-24"
+        id="donate"
+        className="py-16 px-5"
         style={{ borderTop: "1px solid rgba(103,163,177,0.12)" }}
       >
-        <div className="max-w-5xl mx-auto flex flex-col gap-10">
-          <div className="text-center">
-            <h2 className="font-serif text-3xl sm:text-4xl mb-3" style={{ color: "var(--color-ice)" }}>
-              More to Come
-            </h2>
-            <p className="font-sans text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-              These sections are being prepared and will be live soon.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-1 gap-4 max-w-sm mx-auto">
-            <DonateCard
-              title="Donate"
-              description="Support the camp meeting ministry with a donation."
-            />
-          </div>
+        <div className="max-w-4xl mx-auto flex flex-col items-center gap-10">
+          <DonateCard />
 
           {isOpen && (
-            <div className="text-center mt-4">
+            <div className="text-center pt-8 border-t border-white/10 w-full max-w-xl">
+              <p className="font-sans text-xs uppercase tracking-widest text-ice/70 mb-2">
+                Join us for 4 transformative days
+              </p>
+              <h3 className="font-serif text-2xl sm:text-3xl text-white mb-6">
+                Ready for the Rain of His Spirit?
+              </h3>
               <Link
                 to="/register"
                 id="bottom-register-btn"
-                className="inline-flex items-center gap-2 rounded-full font-sans font-semibold text-sm px-6 py-3 transition-all duration-200 hover:scale-[1.03]"
-                style={{ background: "var(--color-ice)", color: "var(--color-primary)" }}
+                className="inline-flex items-center gap-2 rounded-full font-sans font-semibold text-sm sm:text-base px-8 py-3.5 transition-all duration-200 hover:scale-[1.03]"
+                style={{
+                  background: "var(--color-ice)",
+                  color: "var(--color-primary)",
+                  boxShadow: "0 0 25px rgba(216,245,249,0.25)",
+                }}
               >
-                Secure your spot — Register Free
+                Secure your spot — Register Free →
               </Link>
             </div>
           )}

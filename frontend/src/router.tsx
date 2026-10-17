@@ -9,7 +9,6 @@ import { RegisterSuccessPage } from "./pages/RegisterSuccessPage";
 import { TicketPage } from "./pages/TicketPage";
 import { TestimonyPage } from "./pages/TestimonyPage";
 import { DonatePage } from "./pages/DonatePage";
-import { DonateThanksPage } from "./pages/DonateThanksPage";
 import { CheckinRedirectPage } from "./pages/CheckinRedirectPage";
 import { CheckinPage } from "./pages/CheckinPage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
@@ -19,7 +18,6 @@ import { AdminRegistrationsPage } from "./pages/admin/AdminRegistrationsPage";
 import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
 import { AdminTestimonialsPage } from "./pages/admin/AdminTestimonialsPage";
 import { AdminPartnersPage } from "./pages/admin/AdminPartnersPage";
-import { AdminDonationsPage } from "./pages/admin/AdminDonationsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { AdminGalleryPage } from "./pages/admin/AdminGalleryPage";
 
@@ -64,7 +62,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/donate/thanks",
-    element: <DonateThanksPage />,
+    element: <Navigate to="/donate" replace />,
   },
 
   // ── Staff routes (never linked from public pages) ──────────────────────────
@@ -115,10 +113,6 @@ export const router = createBrowserRouter([
       {
         path: "gallery",
         element: <AdminGalleryPage />,
-      },
-      {
-        path: "donations",
-        element: <AdminDonationsPage />,
       },
       {
         path: "users",

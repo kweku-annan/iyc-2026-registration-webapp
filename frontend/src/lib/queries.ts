@@ -450,55 +450,6 @@ export function useUploadImage(csrfToken: string) {
   });
 }
 
-// ── Donations ────────────────────────────────────────────────────────────────
-
-export interface DonationInitialize {
-  amount_minor: number;
-  is_anonymous: boolean;
-  donor_name?: string | null;
-  donor_email?: string | null;
-}
-
-export interface DonationInitializeResponse {
-  authorization_url: string;
-}
-
-export interface DonationAdmin {
-  id: number;
-  reference: string;
-  amount_minor: number;
-  currency: string;
-  status: string;
-  is_anonymous: boolean;
-  donor_name: string | null;
-  donor_email: string | null;
-  created_at: string;
-  paid_at: string | null;
-}
-
-export function useInitializeDonation() {
-  return useMutation({
-    mutationFn: (payload: DonationInitialize) => api.post<DonationInitializeResponse>("/donations/initialize", payload),
-  });
-}
-
-export function useAdminDonations(csrfToken: string | null) {
-  return useQuery<DonationAdmin[], Error>({
-    queryKey: ["admin-donations"],
-    queryFn: () =>
-      fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:8000"}/admin/donations`, {
-        credentials: "include",
-        headers: { "X-CSRF-Token": csrfToken ?? "" },
-      }).then(async (res) => {
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({ detail: res.statusText }));
-          throw new HttpError(res.status, body);
-        }
-        return res.json();
-      }),
-    enabled: !!csrfToken,
-  });
-}
 
 // ── Users (Organizers & Volunteers) ──────────────────────────────────────────
 

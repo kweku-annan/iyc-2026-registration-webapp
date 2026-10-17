@@ -29,8 +29,6 @@ from app.routers.partners import router as partners_router
 from app.routers.registrations import router as registrations_router
 from app.routers.tickets import router as tickets_router
 from app.routers.testimonials import router as testimonials_router
-from app.routers.donations import router as donations_router
-from app.routers.webhooks import router as webhooks_router
 from app.routers.checkin import router as checkin_router
 from app.routers.gallery import router as gallery_router, admin_router as admin_gallery_router
 
@@ -106,8 +104,6 @@ app.include_router(partners_router)
 app.include_router(registrations_router)
 app.include_router(tickets_router)
 app.include_router(testimonials_router)
-app.include_router(donations_router)
-app.include_router(webhooks_router)
 app.include_router(checkin_router)
 app.include_router(gallery_router)
 app.include_router(admin_gallery_router)

@@ -9,6 +9,7 @@
 
 import { type ReactNode, useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { HeartHandshake } from "lucide-react";
 import { SOCIAL } from "../sections/ContactSection";
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -77,14 +78,15 @@ export function Layout({ children }: LayoutProps) {
         {!pathname.startsWith("/donate") && (
           <Link
             to="/donate"
-            className="rounded-full font-sans font-bold transition-all duration-200 hover:scale-[1.03] text-sm px-4 py-2 sm:px-5 donate-nav-btn"
+            className="inline-flex items-center gap-1.5 rounded-full font-sans font-semibold transition-all duration-200 hover:scale-[1.03] text-xs sm:text-sm px-3.5 py-1.5 sm:px-4 sm:py-2 donate-nav-btn"
             style={{
               border: "1px solid rgba(103,163,177,0.5)",
               color: "var(--color-ice)",
               background: "rgba(103,163,177,0.1)",
             }}
           >
-            💝 Donate
+            <HeartHandshake size={15} aria-hidden="true" />
+            <span>Donate</span>
           </Link>
         )}
         {!isRegisterPage && (

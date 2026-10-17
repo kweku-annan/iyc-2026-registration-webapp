@@ -20,7 +20,6 @@ from app.models.registration import Registration
 from app.models.settings import Settings
 from app.models.testimonial import Testimonial
 from app.models.partner import Partner
-from app.models.donation import Donation
 from app.models.user import User
 from app.core.security import hash_password
 from app.schemas.admin import (
@@ -34,7 +33,6 @@ from app.schemas.admin import (
 )
 from app.schemas.partner import Partner as PartnerSchema, PartnerCreate, PartnerUpdate
 from app.schemas.testimonial import TestimonialAdmin, TestimonialUpdate
-from app.schemas.donation import DonationAdminResponse
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_organizer)])
 
@@ -46,18 +44,14 @@ def get_stats(db: Session = Depends(get_db)) -> AdminStatsResponse:  # noqa: B00
     checked_in = db.query(func.count(Registration.id)).filter(Registration.checked_in_at.is_not(None)).scalar() or 0
     walk_ins = db.query(func.count(Registration.id)).filter(Registration.source == "walk_in").scalar() or 0
     pending_testimonials = db.query(func.count(Testimonial.id)).filter(Testimonial.status == "pending").scalar() or 0
-    
-    # Donations stats
-    donations_success_count = db.query(func.count(Donation.id)).filter(Donation.status == "success").scalar() or 0
-    donations_amount_minor = db.query(func.sum(Donation.amount_minor)).filter(Donation.status == "success").scalar() or 0
 
     return AdminStatsResponse(
         total_registered=total_registered,
         checked_in=checked_in,
         walk_ins=walk_ins,
         pending_testimonials=pending_testimonials,
-        donations_success=donations_success_count,
-        donations_amount_minor=donations_amount_minor
+        donations_success=0,
+        donations_amount_minor=0,
     )
 
 
@@ -358,17 +352,6 @@ def delete_partner(
     db.commit()
     return {"detail": "Partner deleted"}
 
-# ── Donations ─────────────────────────────────────────────────────────────────
-# TODO: Donations is a pending feature. When implementing, add the full CRUD
-# admin endpoints here (list, detail, refund, export). The Donation model,
-# schema (DonationAdminResponse), and the public /donations/initialize +
-# Paystack webhook endpoints already exist — only the admin UI layer is missing.
-
-@router.get("/donations", response_model=list[DonationAdminResponse])
-def get_admin_donations(db: Session = Depends(get_db)):  # noqa: B008
-    """List all donations."""
-    stmt = select(Donation).order_by(Donation.created_at.desc())
-    return db.execute(stmt).scalars().all()
 # ── Users (Organizers & Volunteers) ───────────────────────────────────────────
 
 @router.get("/users", response_model=list[UserAdminResponse])
