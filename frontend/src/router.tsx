@@ -1,5 +1,6 @@
 import { createBrowserRouter, Outlet, Navigate } from "react-router-dom";
 import { AdminAuthProvider } from "./lib/adminAuth";
+import { ScrollToTop } from "./components";
 
 // ── Page imports (placeholder components until T10/T11 build them out) ──────
 import { LandingPage } from "./pages/LandingPage";
@@ -21,6 +22,15 @@ import { AdminPartnersPage } from "./pages/admin/AdminPartnersPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { AdminGalleryPage } from "./pages/admin/AdminGalleryPage";
 
+function Root() {
+  return (
+    <>
+      <ScrollToTop />
+      <Outlet />
+    </>
+  );
+}
+
 /**
  * All routes from spec section 9.
  *
@@ -31,11 +41,14 @@ import { AdminGalleryPage } from "./pages/admin/AdminGalleryPage";
  * Admin pages carry noindex meta (enforced in each component).
  */
 export const router = createBrowserRouter([
-  // ── Public routes ──────────────────────────────────────────────────────────
   {
-    path: "/",
-    element: <LandingPage />,
-  },
+    element: <Root />,
+    children: [
+      // ── Public routes ──────────────────────────────────────────────────────────
+      {
+        path: "/",
+        element: <LandingPage />,
+      },
   {
     path: "/gallery",
     element: <GalleryPage />,
@@ -125,10 +138,12 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // ── Fallback ───────────────────────────────────────────────────────────────
-  {
-    path: "*",
-    element: <Navigate to="/" replace />,
+      // ── Fallback ───────────────────────────────────────────────────────────────
+      {
+        path: "*",
+        element: <Navigate to="/" replace />,
+      },
+    ],
   },
 ]);
 

@@ -11,6 +11,7 @@ import { type ReactNode, useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HeartHandshake } from "lucide-react";
 import { SOCIAL } from "../sections/ContactSection";
+import { ScrollToTop } from "./ScrollToTop";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -43,7 +44,7 @@ export function Layout({ children }: LayoutProps) {
     handleScroll(); // Check initial scroll position
     
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [pathname]);
 
   const navContent = (
     <>
@@ -109,6 +110,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-dvh flex flex-col">
+      <ScrollToTop />
       
       {/* ── Fixed Sticky Nav ──
            • Mobile: always visible (banner stays clean)

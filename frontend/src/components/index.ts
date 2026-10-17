@@ -9,4 +9,5 @@ export { Layout } from "./Layout";
 export { ToastProvider, useToast, toast, _wireToast } from "./Toast";
 export { Lightbox } from "./Lightbox";
 export { GalleryGrid } from "./GalleryGrid";
+export { ScrollToTop } from "./ScrollToTop";
 
