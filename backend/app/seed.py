@@ -29,6 +29,7 @@ load_dotenv()
 
 from app.core.database import SessionLocal
 from app.models.gallery import GalleryPhoto
+from app.models.partner import Partner
 from app.models.settings import Settings
 from app.models.user import User
 
@@ -168,6 +169,50 @@ def seed_gallery(db) -> None:
         print(f"  Gallery photos already seeded ({db.query(GalleryPhoto).count()} photos).")
 
 
+def seed_partners(db) -> None:
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    upload_dir = os.environ.get("UPLOAD_DIR", os.path.join(backend_dir, "uploads"))
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # 1. Synchronize partner logos from seed_data into runtime uploads if missing
+    seed_partners_dir = os.path.join(os.path.dirname(__file__), "seed_data", "partners")
+    if os.path.exists(seed_partners_dir):
+        for fname in os.listdir(seed_partners_dir):
+            src_file = os.path.join(seed_partners_dir, fname)
+            dst_file = os.path.join(upload_dir, fname)
+            if not os.path.exists(dst_file):
+                shutil.copy2(src_file, dst_file)
+
+    # 2. Seed partners table if empty
+    partners_manifest = os.path.join(os.path.dirname(__file__), "seed_data", "partners.json")
+    if not os.path.exists(partners_manifest):
+        return
+
+    with open(partners_manifest, "r", encoding="utf-8") as f:
+        partners_data = json.load(f)
+
+    inserted = 0
+    for p_data in partners_data:
+        existing = db.query(Partner).filter_by(name=p_data["name"]).first()
+        if not existing:
+            partner = Partner(
+                name=p_data["name"],
+                logo_url=p_data["logo_url"],
+                website_url=p_data.get("website_url"),
+                location=p_data.get("location"),
+                sort_order=p_data.get("sort_order", 0),
+                is_active=p_data.get("is_active", True),
+            )
+            db.add(partner)
+            inserted += 1
+
+    if inserted > 0:
+        db.commit()
+        print(f"  Created {inserted} partner church record(s).")
+    else:
+        print(f"  Partners already seeded ({db.query(Partner).count()} partners).")
+
+
 def main() -> None:
     print("Running seed script…")
     db = SessionLocal()
@@ -175,6 +220,7 @@ def main() -> None:
         seed_settings(db)
         seed_organizer(db)
         seed_gallery(db)
+        seed_partners(db)
         print("Seed complete.")
     finally:
         db.close()

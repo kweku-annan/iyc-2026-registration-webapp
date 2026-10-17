@@ -46,6 +46,8 @@ Thumbs.db
 *.swo
 
 *.db
+*.dump
+db-backups/
 
 scripts/*
 uploads/*

@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Praise Palace Church International",
+    "logo_url": "/uploads/6135eaf773a4454cab8e75be83536844.png",
+    "website_url": "https://web.facebook.com/profile.php?id=100070230094920",
+    "location": "",
+    "sort_order": 0,
+    "is_active": true
+  },
+  {
+    "name": "Charis WordHouse Chapel International",
+    "logo_url": "/uploads/2c097823f13846a1af7dee9bfc8ec2a6.jpeg",
+    "website_url": "https://web.facebook.com/profile.php?id=100085058544850",
+    "location": "",
+    "sort_order": 0,
+    "is_active": true
+  },
+  {
+    "name": "Shekinah Prayer Ministry",
+    "logo_url": "/uploads/4b13607c136d4d569b3a9f76b80fc668.png",
+    "website_url": "https://web.facebook.com/ShekinahPrayerMinistryIntl",
+    "location": "Takoradi",
+    "sort_order": 0,
+    "is_active": true
+  },
+  {
+    "name": "International Youth for Christ",
+    "logo_url": "/uploads/7a7545fa90a9445e87076f81e787523f.png",
+    "website_url": "",
+    "location": "",
+    "sort_order": 0,
+    "is_active": true
+  }
+]
